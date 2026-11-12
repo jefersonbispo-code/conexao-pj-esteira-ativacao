@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ativação das contas - C6 Conexão PJ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg:#EEF1F4; --panel:#FFFFFF; --panel-2:#F6F8FA; --ink:#16202B; --muted:#5A6675; --line:#D5DBE2;
+  --teal:#0E6A6F; --teal-soft:#D8ECEC; --amber:#B97C0C; --amber-soft:#F5E6C4; --red:#B23A48; --red-soft:#F6DDE0;
+  --slate:#8595A6;
+  --f-body:"Barlow", "Segoe UI", Roboto, Arial, sans-serif;
+  --f-num:"Barlow Semi Condensed", "Arial Narrow", "Segoe UI", sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10161C; --panel:#18212A; --panel-2:#1D2731; --ink:#E6ECF1; --muted:#93A1AF; --line:#2A3642;
+    --teal:#3BB3AE; --teal-soft:#173A3C; --amber:#E7B54A; --amber-soft:#3A2F17; --red:#E06B78; --red-soft:#3B1D22; --slate:#6F7F90;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10161C; --panel:#18212A; --panel-2:#1D2731; --ink:#E6ECF1; --muted:#93A1AF; --line:#2A3642;
+  --teal:#3BB3AE; --teal-soft:#173A3C; --amber:#E7B54A; --amber-soft:#3A2F17; --red:#E06B78; --red-soft:#3B1D22; --slate:#6F7F90;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.wrap{max-width:1440px;margin:0 auto;padding:20px clamp(12px,3vw,32px) 48px}
+
+/* topo */
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
+.brand h1{margin:0;font:700 clamp(24px,3.2vw,34px)/1.05 var(--f-num);letter-spacing:-.01em}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.meta{color:var(--muted);font-size:13px;text-align:right;line-height:1.35}
+.meta b{color:var(--ink);font-weight:600}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--slate)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn[disabled]{opacity:.55;cursor:progress}
+.toast{font-size:13px;color:var(--muted);min-height:18px}
+.toast.err{color:var(--red)}
+.toast.ok{color:var(--teal)}
+
+/* filtros */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:18px;position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+.fdate{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.fdate input{border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:5px 8px;font-size:13px;color:var(--ink)}
+.quick{display:flex;gap:4px}
+.quick button{border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:5px 8px;font-size:12.5px;cursor:pointer}
+.quick button.on{background:var(--teal-soft);border-color:var(--teal);color:var(--ink)}
+@media (max-width:700px){.filters{position:static}.sep{display:none}}
+.sep{width:1px;height:24px;background:var(--line);margin:0 4px}
+.ms{position:relative}
+.ms > button{border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:5px 10px;font-size:13px;cursor:pointer;max-width:230px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms > button.active{border-color:var(--teal);background:var(--teal-soft)}
+.ms > button .lab{color:var(--muted)}
+.pop{position:absolute;top:calc(100% + 6px);left:0;width:300px;max-width:88vw;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(10,20,30,.18);padding:10px;z-index:40;display:none}
+.ms.open .pop{display:block}
+.pop input[type=search]{width:100%;border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:6px 8px;font-size:13px;margin-bottom:8px}
+.pop .row{display:flex;gap:6px;margin-bottom:6px}
+.pop .row button{flex:1;border:1px solid var(--line);background:var(--panel-2);border-radius:6px;padding:4px;font-size:12px;cursor:pointer}
+.pop ul{list-style:none;margin:0;padding:0;max-height:260px;overflow:auto}
+.pop li label{display:flex;gap:8px;align-items:center;padding:4px 6px;border-radius:6px;font-size:13px;cursor:pointer}
+.pop li label:hover{background:var(--panel-2)}
+.clear{margin-left:auto;font-size:13px;border:0;background:none;color:var(--teal);cursor:pointer;padding:4px 6px}
+
+/* funil */
+.funnel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.05fr);background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:18px}
+.stage{padding:18px 20px 16px;position:relative;border-right:1px solid var(--line)}
+.stage:last-child{border-right:0;background:var(--panel-2)}
+.stage .name{font-size:13.5px;color:var(--muted);font-weight:500}
+.stage .val{font:700 clamp(28px,3.4vw,42px)/1.05 var(--f-num);margin-top:4px;font-variant-numeric:tabular-nums}
+.stage .sub{font-size:13px;color:var(--muted);margin-top:4px}
+.stage .sub b{color:var(--ink);font-weight:600}
+.stage .step{position:absolute;right:-13px;top:50%;transform:translateY(-50%);z-index:2;width:26px;height:26px;border-radius:50%;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.stage.sale .val{color:var(--amber)}
+.stage.sale{background:linear-gradient(0deg,var(--amber-soft),transparent 70%)}
+.tma{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tma .val{font-size:clamp(24px,2.6vw,32px)}
+@media (max-width:900px){
+  .funnel{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stage{border-bottom:1px solid var(--line)}
+  .stage .step{display:none}
+  .stage:last-child{grid-column:1/-1}
+}
+
+/* abas */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--teal)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+@media (max-width:1000px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+.card h2{font:600 18px/1.2 var(--f-num);margin:0 0 4px}
+.card .hint{font-size:13px;color:var(--muted);margin:0 0 12px}
+.chartbox{position:relative;height:300px}
+.bar-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bar-head input[type=search]{border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:6px 10px;font-size:13px;min-width:220px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;background:var(--panel-2);padding:5px 10px;font-size:12.5px;cursor:pointer}
+.seg button.on{background:var(--teal);color:#fff}
+
+/* tabelas */
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+thead th{position:sticky;top:0;background:var(--panel-2);font-weight:600;font-size:12.5px;color:var(--muted);text-align:left;cursor:pointer;user-select:none}
+thead th.num,td.num{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:14px}
+thead th.num{font-family:var(--f-body);font-size:12.5px}
+thead th .arr{opacity:.35;margin-left:3px}
+thead th.sorted{color:var(--ink)}
+thead th.sorted .arr{opacity:1}
+tbody tr:hover{background:var(--panel-2)}
+tfoot td{font-weight:600;background:var(--panel-2);border-bottom:0}
+td.name{max-width:320px;overflow:hidden;text-overflow:ellipsis}
+tr.child td{background:var(--panel-2);font-size:13px}
+tr.child td.name{padding-left:30px;color:var(--muted)}
+.exp{border:0;background:none;cursor:pointer;width:18px;padding:0;color:var(--muted);font-size:11px}
+.zero{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:6px;vertical-align:middle}
+.tag{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
+.tag.t-SUCESSO{background:var(--amber-soft);border-color:transparent;color:var(--ink)}
+.tag.t-EMNEG{background:var(--teal-soft);border-color:transparent;color:var(--ink)}
+.tag.t-TEL{background:transparent}
+.tag.t-REC{background:var(--red-soft);border-color:transparent;color:var(--ink)}
+.qt{display:inline-block;min-width:30px;text-align:center;font:600 12.5px/1.5 var(--f-num);padding:0 7px;border-radius:10px}
+.qt.q1{background:var(--teal);color:#fff}.qt.q2{background:var(--teal-soft);color:var(--ink)}
+.qt.q3{background:var(--amber-soft);color:var(--ink)}.qt.q4{background:var(--red-soft);color:var(--ink)}
+.tabbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.tabsum{font-size:13.5px;color:var(--muted);margin:0 0 12px}.tabsum b{color:var(--ink)}
+.pbar{display:inline-block;height:6px;border-radius:3px;background:var(--teal);vertical-align:middle;margin-left:8px;opacity:.75}
+td.heat{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+
+/* vazio */
+.empty{background:var(--panel);border:1px dashed var(--slate);border-radius:12px;padding:40px 28px;max-width:680px;margin:40px auto;text-align:left}
+.empty h2{font:600 22px/1.2 var(--f-num);margin:0 0 10px}
+.empty ol{margin:0 0 18px;padding-left:20px;color:var(--muted)}
+.empty ol li{margin:4px 0}
+.empty code{background:var(--panel-2);padding:1px 6px;border-radius:5px;font-size:13px}
+.hidden{display:none!important}
+th.dlt{font-size:11.5px}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--teal)}
+th.sorted{color:var(--teal)}
+.ms .ms-busca{width:100%;margin:0 0 6px;border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:13px;background:var(--panel-2);color:var(--ink)}
+table.rk td.name{max-width:520px;white-space:normal}
+table.rk td.good,table.rk td.bad{font-weight:600}
+.acs-form{display:grid;grid-template-columns:1.2fr 1.4fr .9fr 1.2fr auto;gap:10px;align-items:end}
+@media (max-width:1000px){.acs-form{grid-template-columns:1fr 1fr}}
+.acs-form label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);font-weight:500}
+.acs-form input,.acs-form select{border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:7px 9px;font-size:14px;color:var(--ink)}
+.acs-senha{display:flex;gap:6px}.acs-senha input{flex:1;min-width:0}
+.acs-ok{background:var(--teal-soft);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13.5px;white-space:pre-line}
+.acs-ok b{font-family:var(--f-num)}
+.acs-tbl td,.acs-tbl th{font-size:13px}
+.acs-tbl .acts{display:flex;gap:6px;justify-content:flex-end}
+.acs-tbl .acts button{border:1px solid var(--line);background:var(--panel-2);border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer}
+.acs-tbl .acts button.del{color:var(--red)}
+.pill{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line)}
+.pill.adm{background:var(--amber-soft);border-color:transparent}
+.pill.ok{background:var(--teal-soft);border-color:transparent}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:22px;width:min(380px,92vw)}
+dialog::backdrop{background:rgba(10,20,30,.45)}
+dialog h2{font:600 20px/1.2 var(--f-num);margin:0 0 6px}
+dialog label{display:block;font-size:13px;color:var(--muted);margin-top:10px}
+dialog input{display:block;width:100%;margin-top:4px;border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:8px 10px;color:var(--ink)}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.drop{outline:2px dashed var(--teal);outline-offset:-8px}
+@media (prefers-reduced-motion:no-preference){.stage .val{transition:color .2s}}
+/* ---- extrato (layout da planilha) ---- */
+.ctrl{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:16px}
+.ctrl label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);font-weight:500}
+.ctrl select{border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:6px 10px;font-size:14px;color:var(--ink);min-width:170px}
+.kpis{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:18px}
+.kpi{padding:14px 16px;border-right:1px solid var(--line)}
+.kpi:last-child{border-right:0}
+.kpi .n{font-size:12.5px;color:var(--muted);font-weight:500}
+.kpi .v{font:700 clamp(20px,2.2vw,28px)/1.1 var(--f-num);margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
+.kpi.proj{background:var(--panel-2)}
+.kpi.proj .v{color:var(--teal)}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.kpi{border-bottom:1px solid var(--line)}}
+@media (max-width:560px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.blk{margin-bottom:20px}
+.blk h2{font:700 17px/1.2 var(--f-num);margin:0 0 8px;letter-spacing:.01em}
+table.x{font-size:12.5px}
+table.x th,table.x td{padding:5px 7px}
+table.x td.name{max-width:210px;width:210px}
+table.x td.num{font-size:13px}
+.wrap{max-width:1760px}
+table.x thead tr.grp th{background:transparent;border-bottom:0;padding-bottom:2px;font-size:12px;color:var(--ink);cursor:default}
+table.x thead tr.grp th.g-real{border-bottom:2px solid var(--slate)}
+table.x thead tr.grp th.g-proj{border-bottom:2px solid var(--teal);color:var(--teal)}
+table.x thead th{cursor:default;white-space:normal;vertical-align:bottom;line-height:1.2}
+table.x td.sepl,table.x th.sepl{border-left:2px solid var(--line)}
+table.x td.pj{background:color-mix(in srgb,var(--teal) 5%,transparent)}
+table.x tfoot td.pj{background:var(--panel-2)}
+td.good{color:var(--teal);font-weight:600}
+td.bad{color:var(--red);font-weight:600}
+td.dim{color:var(--muted)}
+.legend2{font-size:12.5px;color:var(--muted);margin:-8px 0 16px}
+.legend2 b{color:var(--ink)}
+
+/* ---- v11: logo e tabelas compactas ---- */
+.brand h1{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo img{height:34px;width:auto;display:block}
+.wrap{max-width:none}
+table.x{font-size:11.5px}
+table.x th,table.x td{padding:4px 5px}
+table.x td.num{font-size:12px}
+table.x thead th{font-size:11px}
+table.x td.name{max-width:190px;width:190px}
+.ctrl select{min-width:140px}
+/* ---- v10: filtros, abas, blocos altos, mapa ---- */
+.ctrl .ms > button{min-width:170px;text-align:left}
+.ctrl .clear{align-self:center}
+.jump{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.jump a{font-size:12.5px;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:3px 10px}
+.jump a:hover{border-color:var(--teal)}
+.blk{scroll-margin-top:12px}
+.tscroll.tall{max-height:560px;overflow:auto}
+.tscroll.tall thead th{position:sticky;top:0;z-index:1}
+select.sel{border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:5px 8px;font-size:13px;color:var(--ink)}
+.hm{border-collapse:separate;border-spacing:2px;width:100%;font-size:11.5px}
+.hm th{font-weight:600;color:var(--muted);padding:4px 6px;text-align:center;white-space:nowrap}
+.hm th.rl{text-align:left}
+.hm td{padding:6px 2px;text-align:center;border-radius:4px;min-width:44px;font-variant-numeric:tabular-nums}
+.hm td.rl{text-align:left;background:none;font-weight:600;color:var(--ink,inherit);padding-right:10px;white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:none;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--teal);color:#fff}
+.hbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11.5px;background:color-mix(in srgb,var(--teal) 14%,transparent);color:var(--teal);font-weight:600}
+.warnbox{border:1px dashed var(--line);border-radius:8px;padding:8px 12px;font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.mapwrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px}
+@media (max-width:1100px){.mapwrap{grid-template-columns:minmax(0,1fr)}}
+.mapcard{position:relative}
+.map{position:relative;max-width:640px;margin:0 auto}
+.map svg{width:100%;height:auto;display:block}
+.map path{stroke:var(--panel);stroke-width:.8;cursor:pointer;transition:opacity .15s}
+.map path:hover{opacity:.78;stroke:var(--ink);stroke-width:1.2}
+.map text.uf{font:600 10px var(--f-body);fill:var(--ink);text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:2.5px}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 8px 24px rgba(10,20,30,.18);white-space:nowrap;z-index:5}
+.leg{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;color:var(--muted);margin-top:8px}
+.leg i{display:inline-block;width:180px;height:10px;border-radius:5px}
+.spgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.spcard{background:var(--panel-2);border-radius:10px;padding:12px 14px}
+.spcard .n{font-size:12.5px;color:var(--muted);font-weight:600}
+.spcard .v{font:700 26px/1.1 var(--f-num);margin-top:4px}
+.spcard .v span{font:500 13px var(--f-body);color:var(--muted)}
+.spcard .s{font-size:12px;color:var(--muted);margin-top:4px}
+
+.qcards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+@media (max-width:1100px){.qcards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.qc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;border-top:4px solid var(--qc)}
+.qc .n{font:700 15px/1 var(--f-num);color:var(--qc)}
+.qc .v{font:700 24px/1.1 var(--f-num);margin-top:6px;font-variant-numeric:tabular-nums}
+.qc .s{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+.qp{display:inline-block;min-width:26px;text-align:center;padding:1px 7px;border-radius:9px;font-weight:700;font-size:11.5px;color:#fff;background:var(--qc)}
+.ctrl input[type=number],.ctrl input[type=search]{border:1px solid var(--line);background:var(--panel-2);border-radius:7px;padding:6px 10px;font-size:14px;color:var(--ink);width:120px}
+.ctrl input[type=search]{width:220px}
+table.x th.sort{cursor:pointer;user-select:none}
+table.x th.sort:hover{color:var(--teal)}
+.chart{width:100%;height:auto;display:block}
+.chart text{font:11px var(--f-body, sans-serif);fill:var(--muted)}
+.leg2{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
+.leg2 i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-2px}
+.mtx td.c{text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header class="top">
+    <div class="brand">
+      <h1><span class="logo hidden" id="logo"></span>Ativação das contas - C6 Conexão PJ</h1>
+      <p>Contas abertas, % de ativação, gatilhos de R$ 1 mil e oportunidades · Visão Cliente do C6 (tabela VISAO_CLIENTE_C6_PJ)</p>
+    </div>
+    <div class="actions">
+      <div class="meta" id="meta">Nenhuma base carregada</div>
+      <input type="file" id="file" accept=".xlsx,.xls,.csv,.txt" hidden>
+      <button class="btn primary hidden" id="btnUp">Atualizar base</button>
+      <button class="btn ghost hidden" id="btnLocal">Abrir arquivo</button>
+      <button class="btn ghost" id="btnLogin">Entrar</button>
+      <button class="btn ghost hidden" id="btnLogout">Sair</button>
+      <button class="btn ghost" id="btnTheme" aria-label="Alternar tema claro e escuro">Tema</button>
+    </div>
+  </header>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <section id="emptyState" class="empty">
+    <h2 id="emptyTitle">Carregando a base…</h2>
+    <div id="emptyBody"></div>
+  </section>
+  <main id="main" class="hidden">
+    <div class="ctrl">
+      <label>Safra (mês de abertura)<select id="selSafra"></select></label>
+      <label>Setor (CNAE agrupado)<select id="selSetor"></select></label>
+      <label>Janela<select id="selJan"><option value="">Todas as contas</option><option value="aberta">Só janela aberta</option></select></label>
+    </div>
+    <section class="kpis" id="kpis"></section>
+    <nav class="tabs" id="tabs" role="tablist">
+      <button data-t="geral" class="on">Visão geral</button>
+      <button data-t="gatilhos">Gatilhos</button>
+      <button data-t="setores">Setores</button>
+      <button data-t="oport">Oportunidades</button>
+      <button data-t="analitico">Analítico</button>
+      <button data-t="acessos" id="tabAcessos" class="hidden">Acessos</button>
+    </nav>
+    <div id="view"></div>
+  </main>
+<dialog id="dlgLogin">
+  <form method="dialog" id="fLogin">
+    <h2>Entrar no painel</h2>
+    <p class="hint">Use o e-mail e a senha que você recebeu. Esqueceu a senha? Fale com o responsável pelo painel.</p>
+    <label>E-mail<input type="email" id="lEmail" required autocomplete="username"></label>
+    <label>Senha<input type="password" id="lPass" required autocomplete="current-password"></label>
+    <p class="toast err" id="lErr"></p>
+    <div class="dlg-actions"><button type="button" class="btn ghost" id="lCancel">Cancelar</button><button type="submit" class="btn primary" id="lGo">Entrar</button></div>
+  </form>
+</dialog>
+</div>
+<script>window.__LOGO__ = "";</script>
+<script>
+(() => {
+/* ================= CONFIG ================= */
+const SB_URL = "https://jycygfrkvdvdwshhbppp.supabase.co";
+const SB_KEY = "sb_publishable_0OCnz8b3eZye-ft-wBCDug_wzHQP3aT";
+const PAINEL = "ativacao_cxpj";
+const BUCKET = "paineis";
+const CONFIG_OK = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SB_URL) && SB_KEY.length > 20;
+const sb = CONFIG_OK && window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+let logged = false, isAdmin = false;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const nf = new Intl.NumberFormat("pt-BR");
+const fInt = v => isFinite(v) ? nf.format(Math.round(v)) : "–";
+const fPct = (v, d) => isFinite(v) ? (v * 100).toLocaleString("pt-BR", { minimumFractionDigits:d == null ? 1 : d, maximumFractionDigits:d == null ? 1 : d }) + "%" : "–";
+const fDec = (v, d) => isFinite(v) ? v.toLocaleString("pt-BR", { minimumFractionDigits:d == null ? 1 : d, maximumFractionDigits:d == null ? 1 : d }) : "–";
+const fH = s => { if (!isFinite(s)) return "–"; const m = Math.round(s / 60); return nf.format(Math.floor(m / 60)) + ":" + String(m % 60).padStart(2, "0"); };
+const div = (a, b) => b ? a / b : NaN;
+const fMes = m => { m = String(m); return /^\d{6}$/.test(m) ? ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"][+m.slice(4) - 1] + "/" + m.slice(2,4) : m; };
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function toast(msg, kind){ const t = $("#toast"); t.textContent = msg || ""; t.className = "toast" + (kind ? " " + kind : ""); }
+
+const toMeta = r => r ? { fileName:r.arquivo, rows:r.linhas, updatedAt:r.atualizado_em, path:r.storage_path } : null;
+const fR = v => isFinite(v) ? "R$ " + nf.format(Math.round(v)) : "–";
+const fD = iso => iso ? iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4) : "–";
+const fDM = iso => iso ? iso.slice(8, 10) + "/" + iso.slice(5, 7) : "–";
+const fSafra = m => fMes(String(m).replace("-", ""));
+
+/* ================= REGRAS =================
+   conta = DT_CONTA_CRIADA preenchida; balde da safra = contas com STATUS_CONTA liberada abertas no mes
+   % ativacao (faixa da meta) = FL_ATIVA do C6 / balde, na foto
+   gatilhos (R$ 1.000): data = 1a foto em que a condicao virou 1 (vem da query); vale se <= fim da janela */
+const GAT = [
+  { k:"pix", nome:"Cash In + PIX forte", col:"DT_G_PIX" },
+  { k:"bol", nome:"Boleto", col:"DT_G_BOLETO" },
+  { k:"car", nome:"Cartão", col:"DT_G_CARTAO" },
+  { k:"pay", nome:"TPV C6 Pay", col:"DT_G_C6PAY" }
+];
+const FAIXAS = [0.20, 0.25, 0.35];
+const COLS_TXT = ["DATA_BASE","CD_CPF_CNPJ","NOME_CLIENTE","NOME_DO_MASTER","TELEFONE","TELEFONE_APP","BASE_ORIGEM","STATUS_ABERTURA_CC","STATUS_CONTA","STATUS_LEAD",
+  "DT_CONTA_CRIADA","DT_PRIMEIRO_ACESSO_CONTA","DT_CADASTRO_CHAVEPIX","TIPO_CHAVEPIX","SAFRA","JANELA_FIM","DT_G_PIX","DT_G_BOLETO","DT_G_CARTAO","DT_G_C6PAY","DT_ATIVA_C6","SETOR","CNAE_FISCAL","NM_CNAE","TELEFONE_ATENDIMENTO","FONTE_TELEFONE"];
+const COLS_NUM = ["FL_PRIMEIRO_ACESSO","FL_ATIVA","CADASTRO_CHAVEPIXFORTE","FL_CASH_IN_MAIOR_0","FL_CASH_IN_MAIOR_1000","VL_CASH_IN","FL_EMISSAO_BOLETO_MAIOR_0","FL_EMISSAO_BOLETO_MAIOR_1000",
+  "VL_EMISSAO_BOLETO","FL_SOLICITACAO_C6PAY","FL_ENTREGA_C6PAY","TPV_C6PAY_M0","TPV_C6PAY_M1","CARTAO_ATIVO","FL_CARTAO_MAIOR_1000","SPENDING_CREDITO_M0","SPENDING_CREDITO_M1"];
+const DATE_COLS = new Set(["DATA_BASE","DT_CONTA_CRIADA","DT_PRIMEIRO_ACESSO_CONTA","DT_CADASTRO_CHAVEPIX","JANELA_FIM","DT_G_PIX","DT_G_BOLETO","DT_G_CARTAO","DT_G_C6PAY","DT_ATIVA_C6"]);
+const EVO_COLS = ["DATA_BASE","SAFRA","CONTAS","ATIVAS_C6","ATIVAS_GATILHO","G_PIX","G_BOLETO","G_CARTAO","G_C6PAY"];
+const S = { rows:null, evo:[], meta:null, loadedAsset:null, safras:[], safra:"", setor:"", janela:"", tab:"geral", oport:"ativ", setorSel:"", busca:"", sortK:"DT_CONTA_CRIADA", sortD:-1, dataBase:"" };
+
+/* ================= LEITURA ================= */
+const normKey = k => String(k).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u00a0/g, " ").trim().toUpperCase().replace(/\s+/g, "_");
+const num = v => { if (v == null || v === "") return 0; if (typeof v === "number") return v; const t = String(v).trim(); const n = Number(/,\d{1,2}$/.test(t) ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, "")); return isFinite(n) ? n : 0; };
+const clean = v => v == null ? "" : String(v).replace(/\u00a0/g, " ").trim();
+function isoDate(v){
+  if (v == null || v === "") return "";
+  if (v instanceof Date && !isNaN(v)) return new Date(v.getTime() - v.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  if (typeof v === "number" && v > 20000) return new Date(Math.round((v - 25569) * 864e5)).toISOString().slice(0, 10);
+  const t = String(v).trim(); let m = t.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return m[1] + "-" + m[2] + "-" + m[3];
+  m = t.match(/^(\d{2})\/(\d{2})\/(\d{4})/); if (m) return m[3] + "-" + m[2] + "-" + m[1]; return "";
+}
+async function readFile(file){
+  const name = file.name.toLowerCase(); let wb;
+  if (name.endsWith(".csv") || name.endsWith(".txt")){
+    const text = await file.text(); const first = text.split(/\r?\n/, 1)[0];
+    const cnt = ch => first.split(ch).length - 1;
+    const FS = [["\t",cnt("\t")],[";",cnt(";")],[",",cnt(",")]].sort((a,b) => b[1]-a[1])[0][0];
+    wb = XLSX.read(text, { type:"string", FS, raw:true });
+  } else wb = XLSX.read(await file.arrayBuffer(), { type:"array", cellDates:true });
+  const out = { contas:null, evo:null };
+  for (const sn of wb.SheetNames){
+    const r = XLSX.utils.sheet_to_json(wb.Sheets[sn], { defval:null, raw:true });
+    if (!r.length) continue;
+    const keys = Object.keys(r[0]).map(normKey);
+    if (keys.includes("CD_CPF_CNPJ") && keys.includes("DT_CONTA_CRIADA")) out.contas = r;
+    else if (keys.includes("DATA_BASE") && keys.includes("SAFRA") && keys.includes("CONTAS")) out.evo = r;
+  }
+  if (!out.contas) throw new Error("Não encontrei as colunas CD_CPF_CNPJ e DT_CONTA_CRIADA. Use a saída 1 da query C6_CXPJ_ATIVACAO_PAINEL.");
+  return out;
+}
+function encode(x){
+  const rows = x.contas, km = {}; Object.keys(rows[0]).forEach(k => km[normKey(k)] = k);
+  const data = [];
+  for (const r of rows){
+    if (!clean(r[km.CD_CPF_CNPJ]) || !r[km.DT_CONTA_CRIADA]) continue;
+    data.push(COLS_TXT.map(c => km[c] == null ? "" : DATE_COLS.has(c) ? isoDate(r[km[c]]) : clean(r[km[c]]))
+      .concat(COLS_NUM.map(c => km[c] == null ? null : (r[km[c]] == null || r[km[c]] === "" ? null : num(r[km[c]])))));
+  }
+  let evo = [];
+  if (x.evo && x.evo.length){ const ke = {}; Object.keys(x.evo[0]).forEach(k => ke[normKey(k)] = k);
+    evo = x.evo.map(r => EVO_COLS.map((c, i) => i === 0 ? isoDate(r[ke[c]]) : i === 1 ? clean(r[ke[c]]).slice(0, 7) : num(r[ke[c]]))); }
+  return { v:"a1", txt:COLS_TXT, num:COLS_NUM, data, evo };
+}
+const encLen = enc => enc && enc.data ? enc.data.length : 0;
+function load(enc, meta){
+  const T = enc.txt, N = enc.num;
+  S.rows = enc.data.map(a => { const o = {}; T.forEach((c, i) => o[c] = a[i]); N.forEach((c, i) => o[c] = a[T.length + i]); return prep(o); });
+  S.evo = (enc.evo || []).map(a => { const o = {}; EVO_COLS.forEach((c, i) => o[c] = a[i]); return o; });
+  S.meta = meta || S.meta;
+  S.dataBase = S.rows.reduce((m, r) => r.DATA_BASE > m ? r.DATA_BASE : m, "");
+  S.rows.forEach(r => posFoto(r));
+  S.safras = Array.from(new Set(S.rows.map(r => r.safra).filter(Boolean))).sort();
+  S.setores = Array.from(new Set(S.rows.map(r => r.SETOR || "SEM ENRIQUECIMENTO"))).sort();
+  if (S.safra && !S.safras.includes(S.safra)) S.safra = "";
+  $("#emptyState").classList.add("hidden"); $("#main").classList.remove("hidden");
+  buildControls(); renderMeta(); refresh();
+}
+const fimJanela = sf => { const y = +sf.slice(0, 4), m = +sf.slice(5, 7); const d = new Date(y, m + 1, 0); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+function prep(r){
+  r.safra = r.SAFRA || (r.DT_CONTA_CRIADA ? r.DT_CONTA_CRIADA.slice(0, 7) : "");
+  r.fim = r.JANELA_FIM || (r.safra ? fimJanela(r.safra) : "");
+  r.SETOR = r.SETOR || "SEM ENRIQUECIMENTO";
+  r.lib = String(r.STATUS_CONTA).toUpperCase() === "LIBERADA";
+  r.telC6 = r.TELEFONE_APP || r.TELEFONE || "";
+  r.ativaC6 = r.FL_ATIVA === 1;
+  r.g = {}; GAT.forEach(x => { const d = r[x.col]; r.g[x.k] = !!d && (!r.fim || d <= r.fim); });
+  r.ativaG = GAT.some(x => r.g[x.k]);
+  r.nG = GAT.filter(x => r.g[x.k]).length;
+  r.spend0 = r.SPENDING_CREDITO_M0 || 0; r.spend1 = r.SPENDING_CREDITO_M1 || 0;
+  r.tpv0 = r.TPV_C6PAY_M0 || 0; r.tpv1 = r.TPV_C6PAY_M1 || 0;
+  return r;
+}
+/* M1 so vale se o mes anterior a foto estiver dentro da janela (>= mes da abertura) */
+function posFoto(r){
+  const fm = S.dataBase.slice(0, 7), y = +fm.slice(0, 4), m = +fm.slice(5, 7), m1 = m === 1 ? (y - 1) + "-12" : y + "-" + String(m - 1).padStart(2, "0");
+  r.m1ok = !!r.safra && m1 >= r.safra;
+  r.janAberta = !!r.fim && S.dataBase <= r.fim;
+  r.diasJan = r.fim ? Math.round((new Date(r.fim + "T12:00:00") - new Date(S.dataBase + "T12:00:00")) / 864e5) : NaN;
+  r.spendJan = r.spend0 + (r.m1ok ? r.spend1 : 0); r.tpvJan = r.tpv0 + (r.m1ok ? r.tpv1 : 0);
+  /* garantia: com o valor da janela >= R$ 1.000 na foto, o gatilho conta (mesma regra da query) */
+  if (!r.g.car && r.CARTAO_ATIVO === 1 && r.spendJan >= 1000 && r.janAberta){ r.g.car = true; r.DT_G_CARTAO = r.DT_G_CARTAO || S.dataBase; }
+  if (!r.g.pay && r.tpvJan >= 1000 && r.janAberta){ r.g.pay = true; r.DT_G_C6PAY = r.DT_G_C6PAY || S.dataBase; }
+  r.ativaG = GAT.some(x => r.g[x.k]); r.nG = GAT.filter(x => r.g[x.k]).length;
+}
+function renderMeta(){
+  if (!S.rows){ $("#meta").textContent = "Nenhuma base carregada"; return; }
+  const m = S.meta, when = m && m.updatedAt ? new Date(m.updatedAt).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" }) : null;
+  $("#meta").innerHTML = (when ? "Atualizado em <b>" + esc(when) + "</b><br>" : "<b>Somente nesta tela</b><br>") + "Foto da Visão Cliente de " + esc(fD(S.dataBase)) + " · " + fInt(S.rows.length) + " contas";
+}
+
+/* ================= CONTROLES ================= */
+function opts(list, sel, all, fmt){ return (all ? '<option value="">' + all + '</option>' : '') + list.map(v => '<option value="' + esc(v) + '"' + (v === sel ? ' selected' : '') + '>' + esc(fmt ? fmt(v) : v) + '</option>').join(""); }
+function buildControls(){
+  $("#selSafra").innerHTML = opts(S.safras, S.safra, "Todas as safras", fSafra);
+  $("#selSetor").innerHTML = opts(S.setores, S.setor, "Todos");
+  $("#selJan").value = S.janela;
+}
+$("#selSafra").onchange = e => { S.safra = e.target.value; refresh(); };
+$("#selSetor").onchange = e => { S.setor = e.target.value; refresh(); };
+$("#selJan").onchange = e => { S.janela = e.target.value; refresh(); };
+$("#tabs").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.tab = b.dataset.t; document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("on", x === b)); refresh(); };
+
+/* ================= CALCULO ================= */
+function filtrados(){ return S.rows.filter(r => r.lib && (!S.safra || r.safra === S.safra) && (!S.setor || r.SETOR === S.setor) && (S.janela !== "aberta" || r.janAberta)); }
+function resumo(l){
+  const n = l.length, o = { n, c6:0, g:0, acesso:0, q:{} };
+  GAT.forEach(x => o.q[x.k] = 0);
+  l.forEach(r => { if (r.ativaC6) o.c6++; if (r.ativaG) o.g++; if (r.FL_PRIMEIRO_ACESSO === 1) o.acesso++; GAT.forEach(x => { if (r.g[x.k]) o.q[x.k]++; }); });
+  o.pC6 = div(o.c6, n); o.pG = div(o.g, n); o.pAc = div(o.acesso, n);
+  const prox = FAIXAS.find(f => (o.pC6 || 0) < f); o.prox = prox; o.falta = prox ? Math.max(0, Math.ceil(prox * n - 1e-9) - o.c6) : 0;
+  o.faixa = FAIXAS.slice().reverse().find(f => (o.pC6 || 0) >= f);
+  return o;
+}
+const faixaTxt = f => f ? "≥ " + fPct(f, 0) : "< 20%";
+
+/* ================= RENDER ================= */
+const k = (n, v, s) => '<div class="kpi"><div class="n">' + n + '</div><div class="v">' + v + '</div><div class="s">' + s + '</div></div>';
+function refresh(){
+  if (S.tab === "acessos"){ if (logged && isAdmin) renderAcessos(); return; }
+  if (!S.rows) return;
+  const l = filtrados(), R = resumo(l), op = l.filter(r => r.janAberta && !r.ativaG).length;
+  const fora = S.rows.filter(r => !r.lib && (!S.safra || r.safra === S.safra)).length;
+  $("#kpis").innerHTML = k("Contas liberadas", fInt(R.n), fInt(fora) + " abertas fora (bloqueada ou desativada)")
+    + k("% ativação (FL_ATIVA)", fPct(R.pC6), fInt(R.c6) + " contas com movimento · define a faixa")
+    + k("% com gatilho de R$ 1 mil", fPct(R.pG), fInt(R.g) + " contas bateram pelo menos 1 gatilho")
+    + k("Cash In + PIX · Boleto", fInt(R.q.pix) + " · " + fInt(R.q.bol), fPct(div(R.q.pix, R.n)) + " · " + fPct(div(R.q.bol, R.n)) + " das contas")
+    + k("Cartão · TPV C6 Pay", fInt(R.q.car) + " · " + fInt(R.q.pay), fPct(div(R.q.car, R.n)) + " · " + fPct(div(R.q.pay, R.n)) + " das contas")
+    + k("Primeiro acesso", fPct(R.pAc), fInt(R.acesso) + " contas acessaram o app")
+    + k("Sem gatilho, janela aberta", fInt(op), "contas para trabalhar (aba Oportunidades)");
+  const v = $("#view");
+  if (S.tab === "geral") v.innerHTML = viewGeral(l);
+  else if (S.tab === "gatilhos") v.innerHTML = viewGatilhos(l);
+  else if (S.tab === "setores"){ v.innerHTML = viewSetores(l); bindSetores(); }
+  else if (S.tab === "oport"){ v.innerHTML = viewOport(l); bindOport(); }
+  else { v.innerHTML = viewAnalitico(l); bindAnalitico(); }
+}
+/* ---------- visao geral: uma linha por safra ---------- */
+function viewGeral(l){
+  const safras = Array.from(new Set(l.map(r => r.safra))).sort();
+  if (!safras.length) return '<div class="card"><h2>Sem contas no filtro</h2></div>';
+  const cards = safras.map(sf => { const ls = l.filter(r => r.safra === sf), R = resumo(ls), fim = fimJanela(sf);
+    const dias = Math.round((new Date(fim + "T12:00:00") - new Date(S.dataBase + "T12:00:00")) / 864e5), aberta = dias >= 0;
+    const barra = Math.min(1, (R.pC6 || 0) / 0.35);
+    const marcas = FAIXAS.map(t => '<i style="position:absolute;left:' + (t / 0.35 * 100) + '%;top:-3px;bottom:-3px;width:2px;background:var(--ink)"></i>').join("");
+    return '<div class="card" style="margin:0"><div class="bar-head"><h2 style="margin:0">Safra ' + esc(fSafra(sf)) + '</h2><span class="pill' + (aberta ? ' ok' : '') + '">' + (aberta ? 'Janela aberta · ' + dias + ' dia(s)' : 'Janela fechada') + '</span></div>'
+      + '<div style="display:flex;gap:28px;flex-wrap:wrap;margin:10px 0 12px">'
+      + '<div><div class="hint" style="margin:0">Contas liberadas</div><div style="font:700 26px/1.1 var(--f-num)">' + fInt(R.n) + '</div></div>'
+      + '<div><div class="hint" style="margin:0">% ativação (FL_ATIVA)</div><div style="font:700 26px/1.1 var(--f-num)">' + fPct(R.pC6) + '</div></div>'
+      + '<div><div class="hint" style="margin:0">% com gatilho</div><div style="font:700 26px/1.1 var(--f-num)">' + fPct(R.pG) + '</div></div>'
+      + '<div><div class="hint" style="margin:0">Primeiro acesso</div><div style="font:700 26px/1.1 var(--f-num)">' + fPct(R.pAc) + '</div></div></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span>' + fInt(R.c6) + ' ativas de ' + fInt(R.n) + ' · janela até ' + fD(fim) + '</span><span>Faixa atual: <b>' + faixaTxt(R.faixa) + '</b></span></div>'
+      + '<div style="position:relative;height:10px;border-radius:5px;background:var(--panel-2);border:1px solid var(--line)"><div style="height:100%;width:' + (barra * 100) + '%;border-radius:5px;background:var(--teal)"></div>' + marcas + '</div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px"><span>0%</span><span>20% · 25% · 35%</span></div>'
+      + (R.prox ? '<div class="warnbox" style="margin:12px 0 0;border-style:solid;border-color:var(--teal);color:var(--ink)">Faltam <b>' + fInt(R.falta) + ' contas ativas</b> para a faixa de ' + fPct(R.prox, 0) + '.</div>'
+               : '<div class="warnbox" style="margin:12px 0 0">Safra já está na faixa máxima (≥ 35%).</div>')
+      + '<div class="tscroll" style="margin-top:12px"><table class="x"><thead><tr><th>Gatilho</th><th class="num">Contas</th><th class="num">% das contas</th></tr></thead><tbody>'
+      + GAT.map(x => '<tr><td class="name">' + x.nome + '</td><td class="num">' + fInt(R.q[x.k]) + '</td><td class="num">' + fPct(div(R.q[x.k], R.n)) + '</td></tr>').join("") + '</tbody></table></div>'
+      + '</div>'; }).join("");
+  return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;margin-bottom:16px">' + cards + '</div>'
+    + '<div class="card"><p class="legend2" style="margin:0">Contas liberadas = DT_CONTA_CRIADA preenchida e STATUS_CONTA liberada. % ativação = FL_ATIVA do C6 (qualquer movimento) sobre as contas liberadas da safra, na foto; é o % que define a faixa (20%, 25% e 35%). % com gatilho = contas que bateram pelo menos um gatilho de R$ 1 mil dentro da janela (mês da abertura + mês seguinte).</p></div>';
+}
+/* ---------- gatilhos: safra x gatilho e evolucao por foto ---------- */
+function viewGatilhos(l){
+  const safras = Array.from(new Set(l.map(r => r.safra))).sort();
+  const lin = safras.map(sf => { const R = resumo(l.filter(r => r.safra === sf));
+    return '<tr><td class="name">' + esc(fSafra(sf)) + '</td><td class="num">' + fInt(R.n) + '</td><td class="num">' + fPct(R.pC6) + '</td><td class="num"><b>' + fPct(R.pG) + '</b></td>'
+      + GAT.map(x => '<td class="num">' + fInt(R.q[x.k]) + ' · ' + fPct(div(R.q[x.k], R.n)) + '</td>').join("") + '</tr>'; }).join("");
+  const T = resumo(l);
+  const tab = '<div class="card"><h2>Gatilhos por safra · foto de ' + fD(S.dataBase) + '</h2><div class="tscroll"><table class="x"><thead><tr><th>Safra</th><th class="num">Contas liberadas</th><th class="num">% ativação</th><th class="num">% com gatilho</th>'
+    + GAT.map(x => '<th class="num">' + x.nome + '</th>').join("") + '</tr></thead><tbody>' + lin
+    + '<tr class="tot"><td class="name"><b>Total</b></td><td class="num"><b>' + fInt(T.n) + '</b></td><td class="num"><b>' + fPct(T.pC6) + '</b></td><td class="num"><b>' + fPct(T.pG) + '</b></td>'
+    + GAT.map(x => '<td class="num"><b>' + fInt(T.q[x.k]) + ' · ' + fPct(div(T.q[x.k], T.n)) + '</b></td>').join("") + '</tr></tbody></table></div>'
+    + '<p class="legend2" style="margin:8px 0 0">Cash In + PIX forte = cash in de R$ 1 mil e chave PIX forte · Boleto = emissão de R$ 1 mil · Cartão = cartão ativo com gasto de R$ 1 mil no crédito (o arquivo não traz débito) · TPV C6 Pay = TPV de R$ 1 mil no mês. A data do gatilho é a primeira foto em que ele aparece.</p></div>';
+  /* evolucao por foto (saida 2) */
+  let evo = "";
+  const E = S.evo.filter(e => (!S.safra || e.SAFRA === S.safra));
+  if (E.length){
+    const fotos = Array.from(new Set(E.map(e => e.DATA_BASE))).sort(), sfs = Array.from(new Set(E.map(e => e.SAFRA))).sort();
+    const cel = (f, sf) => { const e = E.find(x => x.DATA_BASE === f && x.SAFRA === sf); return e ? '<td class="num">' + fPct(div(e.ATIVAS_C6, e.CONTAS)) + '<br><span class="hint" style="margin:0">gatilho ' + fPct(div(e.ATIVAS_GATILHO, e.CONTAS)) + '</span></td>' : '<td class="num" style="color:var(--muted)">·</td>'; };
+    evo = '<div class="card"><h2>Evolução por foto</h2><p class="hint" style="margin-top:0">% ativação (FL_ATIVA) e % com gatilho de cada safra em cada foto da Visão Cliente.</p><div class="tscroll"><table class="x"><thead><tr><th>Safra</th>'
+      + fotos.map(f => '<th class="num">' + fD(f) + '</th>').join("") + '</tr></thead><tbody>'
+      + sfs.map(sf => '<tr><td class="name">' + esc(fSafra(sf)) + '</td>' + fotos.map(f => cel(f, sf)).join("") + '</tr>').join("") + '</tbody></table></div>'
+      + '<p class="legend2" style="margin:8px 0 0">O filtro de setor não se aplica a esta tabela (ela vem consolidada por safra).</p></div>';
+  } else evo = '<div class="card"><p class="hint" style="margin:0">Base sem a saída 2 da query (evolução por foto).</p></div>';
+  return tab + evo;
+}
+/* ---------- setores (macro-setor de CNAE) ---------- */
+function viewSetores(l){
+  const m = new Map(); l.forEach(r => (m.get(r.SETOR) || m.set(r.SETOR, []).get(r.SETOR)).push(r));
+  const T = resumo(l);
+  const lin = Array.from(m.entries()).map(([s, ls]) => ({ s, R:resumo(ls) })).sort((a, b) => a.s.localeCompare(b.s));
+  if (!S.setorSel || !m.has(S.setorSel)) S.setorSel = lin.length ? lin.slice().sort((a, b) => b.R.n - a.R.n)[0].s : "";
+  const row = (nome, R, sel, tot) => '<tr' + (tot ? ' class="tot"' : sel ? ' style="background:var(--teal-soft)"' : '') + (tot ? '' : ' data-set="' + esc(nome) + '" style="cursor:pointer' + (sel ? ';background:var(--teal-soft)' : '') + '"') + '><td class="name">' + (tot ? '<b>Total</b>' : esc(nome)) + '</td><td class="num">' + fInt(R.n) + '</td><td class="num">' + fPct(div(R.n, T.n)) + '</td><td class="num"><b>' + fPct(R.pC6) + '</b></td><td class="num">' + fPct(R.pG) + '</td>'
+    + GAT.map(x => '<td class="num">' + fPct(div(R.q[x.k], R.n)) + '</td>').join("") + '<td class="num">' + fPct(R.pAc) + '</td></tr>';
+  const head = t => '<thead><tr><th>' + t + '</th><th class="num">Contas</th><th class="num">% das contas</th><th class="num">% ativação</th><th class="num">% com gatilho</th>' + GAT.map(x => '<th class="num">' + x.nome + '</th>').join("") + '<th class="num">Primeiro acesso</th></tr></thead>';
+  const tab = '<div class="card"><h2>Ativação por setor (CNAE agrupado)</h2><p class="hint" style="margin-top:0">Clique no setor para abrir o detalhe por CNAE.</p><div class="tscroll"><table class="x">' + head("Setor") + '<tbody>'
+    + lin.map(x => row(x.s, x.R, x.s === S.setorSel)).join("") + row("", T, false, true) + '</tbody></table></div></div>';
+  const det = new Map(); (m.get(S.setorSel) || []).forEach(r => { const c = r.CNAE_FISCAL ? r.CNAE_FISCAL + (r.NM_CNAE ? " - " + r.NM_CNAE : "") : "Sem CNAE"; (det.get(c) || det.set(c, []).get(c)).push(r); });
+  const dl = Array.from(det.entries()).map(([c, ls]) => ({ c, R:resumo(ls) })).sort((a, b) => b.R.n - a.R.n);
+  const tabDet = '<div class="card"><h2>' + esc(S.setorSel) + ' · por CNAE</h2><div class="tscroll tall"><table class="x">' + head("CNAE") + '<tbody>'
+    + dl.map(x => '<tr><td class="name" style="white-space:normal;max-width:520px">' + esc(x.c) + '</td><td class="num">' + fInt(x.R.n) + '</td><td class="num">' + fPct(div(x.R.n, T.n)) + '</td><td class="num"><b>' + fPct(x.R.pC6) + '</b></td><td class="num">' + fPct(x.R.pG) + '</td>'
+      + GAT.map(g => '<td class="num">' + fPct(div(x.R.q[g.k], x.R.n)) + '</td>').join("") + '<td class="num">' + fPct(x.R.pAc) + '</td></tr>').join("") + '</tbody></table></div></div>';
+  return tab + tabDet;
+}
+function bindSetores(){ document.querySelectorAll("#view [data-set]").forEach(tr => tr.onclick = () => { S.setorSel = tr.dataset.set; refresh(); }); }
+
+/* ---------- oportunidades: cada objetivo traz o valor atual do que falta ---------- */
+const falta = v => Math.max(0, 1000 - (v || 0));
+const gatTxt = r => GAT.filter(x => r.g[x.k]).map(x => x.nome).join(", ") || "nenhum";
+const faltaTxt = r => GAT.filter(x => !r.g[x.k]).map(x => x.nome).join(", ") || "nenhum";
+const OP = [
+  { k:"ativ", nome:"Conta sem gatilho de R$ 1 mil", f:r => !r.ativaG,
+    cols:[["Movimento (FL_ATIVA)", r => r.ativaC6 ? "Sim" : "Não"], ["Cash in atual", r => r.VL_CASH_IN, "R"], ["Spending crédito", r => r.spendJan, "R"], ["Boleto emitido", r => r.VL_EMISSAO_BOLETO, "R"], ["TPV C6 Pay", r => r.tpvJan, "R"]] },
+  { k:"pixsc", nome:"Chave PIX forte sem cash in de R$ 1.000", f:r => !r.g.pix && r.CADASTRO_CHAVEPIXFORTE === 1 && r.FL_CASH_IN_MAIOR_1000 !== 1,
+    cols:[["Cash in atual", r => r.VL_CASH_IN, "R"], ["Falta para R$ 1.000", r => falta(r.VL_CASH_IN), "R"], ["Tipo da chave PIX", r => r.TIPO_CHAVEPIX], ["Cadastro da chave", r => fD(r.DT_CADASTRO_CHAVEPIX)]] },
+  { k:"cashsp", nome:"Cash in ≥ R$ 1.000 sem chave PIX forte", f:r => !r.g.pix && r.FL_CASH_IN_MAIOR_1000 === 1 && r.CADASTRO_CHAVEPIXFORTE !== 1,
+    cols:[["Cash in atual", r => r.VL_CASH_IN, "R"], ["Chave PIX forte", r => r.CADASTRO_CHAVEPIXFORTE === 1 ? "Sim" : "Não"], ["Tipo da chave PIX", r => r.TIPO_CHAVEPIX || "sem chave"]] },
+  { k:"cashp", nome:"Cash in entre R$ 1 e R$ 999", f:r => !r.g.pix && r.FL_CASH_IN_MAIOR_0 === 1 && r.FL_CASH_IN_MAIOR_1000 !== 1,
+    cols:[["Cash in atual", r => r.VL_CASH_IN, "R"], ["Falta para R$ 1.000", r => falta(r.VL_CASH_IN), "R"], ["Chave PIX forte", r => r.CADASTRO_CHAVEPIXFORTE === 1 ? "Sim" : "Não"]] },
+  { k:"card", nome:"Cartão ativo sem spending de R$ 1.000", f:r => !r.g.car && r.CARTAO_ATIVO === 1,
+    cols:[["Spending crédito no mês (M0)", r => r.spend0, "R"], ["Spending mês anterior (M1)", r => r.m1ok ? r.spend1 : null, "R"], ["Spending na janela", r => r.spendJan, "R"], ["Falta para R$ 1.000", r => falta(r.spendJan), "R"]] },
+  { k:"bolp", nome:"Boleto emitido abaixo de R$ 1.000", f:r => !r.g.bol && r.FL_EMISSAO_BOLETO_MAIOR_0 === 1,
+    cols:[["Boleto emitido atual", r => r.VL_EMISSAO_BOLETO, "R"], ["Falta para R$ 1.000", r => falta(r.VL_EMISSAO_BOLETO), "R"]] },
+  { k:"pay", nome:"C6 Pay entregue sem TPV de R$ 1.000", f:r => !r.g.pay && r.FL_ENTREGA_C6PAY === 1,
+    cols:[["TPV no mês (M0)", r => r.tpv0, "R"], ["TPV mês anterior (M1)", r => r.m1ok ? r.tpv1 : null, "R"], ["TPV na janela", r => r.tpvJan, "R"], ["Falta para R$ 1.000", r => falta(r.tpvJan), "R"]] },
+  { k:"acesso", nome:"Conta liberada sem primeiro acesso", f:r => r.FL_PRIMEIRO_ACESSO !== 1,
+    cols:[["Abertura", r => fD(r.DT_CONTA_CRIADA)], ["Dias desde a abertura", r => Math.round((new Date(S.dataBase + "T12:00:00") - new Date(r.DT_CONTA_CRIADA + "T12:00:00")) / 864e5), "N"], ["Status do lead", r => r.STATUS_LEAD]] }
+];
+const fonteTxt = f => ({ "CRM - VENDA":"CRM (venda)", "CRM - ATENDIMENTO":"CRM (atendimento)", "MAILING - SOCIO 1":"Mailing (sócio 1)", "SEM TELEFONE":"sem telefone" })[f] || f || "";
+const fCel = (v, t) => v == null || v === "" ? '<span style="color:var(--muted)">–</span>' : t === "R" ? fR(v) : t === "N" ? fInt(v) : esc(v);
+function viewOport(l){
+  const ab = l.filter(r => r.janAberta);
+  const res = OP.map(o => ({ o, l:ab.filter(o.f) })); S._oport = res;
+  const sel = res.find(x => x.o.k === S.oport) || res[0];
+  const tab = '<div class="tscroll"><table class="x"><thead><tr><th>Objetivo</th><th class="num">Contas</th><th class="num">% das contas em janela</th><th></th></tr></thead><tbody>'
+    + res.map(x => '<tr' + (x === sel ? ' class="tot"' : '') + '><td class="name" style="white-space:normal;max-width:none">' + esc(x.o.nome) + '</td><td class="num"><b>' + fInt(x.l.length) + '</b></td><td class="num">' + fPct(div(x.l.length, ab.length)) + '</td><td><button class="btn ghost" data-op="' + x.o.k + '" style="padding:3px 10px;font-size:12px">Ver lista</button></td></tr>').join("")
+    + '</tbody></table></div>';
+  const fixas = [["Safra", r => fSafra(r.safra)], ["CNPJ", r => r.CD_CPF_CNPJ], ["Cliente", r => r.NOME_CLIENTE], ["Sócio master", r => r.NOME_DO_MASTER], ["Telefone atendimento", r => r.TELEFONE_ATENDIMENTO], ["Fonte do telefone", r => fonteTxt(r.FONTE_TELEFONE)], ["Telefone C6", r => r.TELEFONE_APP || r.TELEFONE], ["Setor", r => r.SETOR]];
+  const fim = [["Gatilhos que já bateu", r => gatTxt(r)], ["Janela até", r => fD(r.fim)], ["Dias restantes", r => r.diasJan, "N"]];
+  const C = fixas.concat(sel.o.cols, fim);
+  const ord = sel.o.cols.find(c => c[2] === "R");
+  const linhas = sel.l.slice().sort((a, b) => ord ? (ord[1](b) || 0) - (ord[1](a) || 0) : a.diasJan - b.diasJan);
+  const lista = '<div class="tscroll tall"><table class="x"><thead><tr>' + C.map(c => '<th' + (c[2] ? ' class="num"' : '') + '>' + c[0] + '</th>').join("") + '</tr></thead><tbody>'
+    + linhas.slice(0, 3000).map(r => '<tr>' + C.map((c, i) => '<td class="' + (c[2] ? "num" : i === 2 || i === 3 ? "name" : "") + '">' + fCel(c[1](r), c[2]) + '</td>').join("") + '</tr>').join("")
+    + '</tbody></table></div>';
+  return '<div class="card"><h2>Oportunidades nas safras com janela aberta</h2><p class="hint" style="margin-top:0">Contas liberadas que ainda podem bater um gatilho antes de fechar a janela. Cada lista mostra o valor atual do objetivo e quanto falta.</p>' + tab + '</div>'
+    + '<div class="card"><div class="bar-head"><h2 style="margin:0">' + esc(sel.o.nome) + ' · ' + fInt(sel.l.length) + ' contas</h2><button class="btn ghost" id="btnOpXlsx">Baixar lista em Excel</button></div>' + lista + '</div>';
+}
+function bindOport(){
+  document.querySelectorAll("#view [data-op]").forEach(b => b.onclick = () => { S.oport = b.dataset.op; refresh(); });
+  const bx = $("#btnOpXlsx"); if (bx) bx.onclick = () => { const sel = (S._oport || []).find(x => x.o.k === S.oport) || S._oport[0];
+    const out = sel.l.map(r => { const o = { Safra:fSafra(r.safra), CNPJ:r.CD_CPF_CNPJ, Cliente:r.NOME_CLIENTE, "Sócio master":r.NOME_DO_MASTER, "Telefone atendimento":r.TELEFONE_ATENDIMENTO, "Fonte do telefone":fonteTxt(r.FONTE_TELEFONE), "Telefone C6":r.TELEFONE, "Telefone app":r.TELEFONE_APP, Setor:r.SETOR, CNAE:r.CNAE_FISCAL, "Descrição CNAE":r.NM_CNAE };
+      sel.o.cols.forEach(c => { const v = c[1](r); o[c[0]] = v == null ? "" : v; });
+      o["Gatilhos que já bateu"] = gatTxt(r); o["Gatilhos que faltam"] = faltaTxt(r); o["Janela até"] = fD(r.fim); o["Dias restantes"] = r.diasJan; return o; });
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(out), "Oportunidade"); XLSX.writeFile(wb, "Ativacao_" + sel.o.k + "_" + S.dataBase + ".xlsx"); };
+}
+/* ---------- analitico ---------- */
+const ACOLS = [["safra","Safra"],["NOME_CLIENTE","Cliente"],["CD_CPF_CNPJ","CNPJ"],["TELEFONE_ATENDIMENTO","Telefone atendimento"],["FONTE_TELEFONE","Fonte do telefone"],["telC6","Telefone C6"],["SETOR","Setor"],["DT_CONTA_CRIADA","Abertura"],["FL_PRIMEIRO_ACESSO","1º acesso"],["ativaC6","Movimento"],
+  ["pix","PIX"],["bol","Boleto"],["car","Cartão"],["pay","C6 Pay"],["VL_CASH_IN","Cash in"],["spendJan","Spending"],["VL_EMISSAO_BOLETO","Boleto emitido"],["tpvJan","TPV"],["diasJan","Dias de janela"]];
+const VAL_R = new Set(["VL_CASH_IN","spendJan","VL_EMISSAO_BOLETO","tpvJan"]);
+function viewAnalitico(l){
+  const b = S.busca.toLowerCase();
+  l = l.filter(r => !b || (r.NOME_CLIENTE + " " + r.CD_CPF_CNPJ + " " + r.NOME_DO_MASTER).toLowerCase().includes(b));
+  const K = S.sortK, D = S.sortD, val = (r, k) => GAT.some(g => g.k === k) ? (r.g[k] ? 1 : 0) : k === "ativaC6" ? (r.ativaC6 ? 1 : 0) : r[k];
+  l.sort((x, y) => { const a = val(x, K), c = val(y, K); return typeof a === "string" || typeof c === "string" ? D * String(a || "").localeCompare(String(c || "")) : D * ((a || 0) - (c || 0)); });
+  const ck = v => v ? '<span style="color:#2E7D32;font-weight:700">✓</span>' : '<span style="color:var(--muted)">·</span>';
+  const cell = (r, k) => GAT.some(g => g.k === k) ? ck(r.g[k]) : k === "safra" ? esc(fSafra(r.safra)) : k === "ativaC6" ? ck(r.ativaC6) : k === "FL_PRIMEIRO_ACESSO" ? ck(r.FL_PRIMEIRO_ACESSO === 1)
+    : k === "FONTE_TELEFONE" ? esc(fonteTxt(r.FONTE_TELEFONE)) : k === "DT_CONTA_CRIADA" ? fD(r.DT_CONTA_CRIADA) : VAL_R.has(k) ? fCel(r[k], "R") : k === "diasJan" ? (r.janAberta ? fInt(r.diasJan) : '<span style="color:var(--muted)">fechada</span>') : esc(r[k]);
+  return '<div class="card"><div class="bar-head"><div><h2 style="margin:0">Analítico por conta · ' + fInt(l.length) + ' contas</h2><p class="hint" style="margin:0">Clique no título da coluna para ordenar. Spending e TPV = mês da foto + mês anterior, quando dentro da janela.</p></div><div style="display:flex;gap:8px"><input type="search" id="busca" class="sel" placeholder="Buscar cliente, CNPJ ou sócio" value="' + esc(S.busca) + '"><button class="btn ghost" id="btnAnXlsx">Baixar Excel</button></div></div>'
+    + '<div class="tscroll tall"><table class="x"><thead><tr>' + ACOLS.map(([k, h]) => '<th class="sort' + (VAL_R.has(k) || k === "diasJan" ? ' num' : '') + '" data-k="' + k + '" style="cursor:pointer">' + h + (S.sortK === k ? (S.sortD > 0 ? " ▲" : " ▼") : "") + '</th>').join("") + '</tr></thead><tbody>'
+    + l.slice(0, 3000).map(r => '<tr>' + ACOLS.map(([k]) => '<td class="' + (k === "NOME_CLIENTE" || k === "SETOR" ? "name" : VAL_R.has(k) || k === "diasJan" ? "num" : "") + '">' + cell(r, k) + '</td>').join("") + '</tr>').join("") + '</tbody></table></div>'
+    + (l.length > 3000 ? '<p class="hint">Mostrando 3.000 de ' + fInt(l.length) + ' contas; o Excel traz todas.</p>' : '') + '</div>';
+}
+function bindAnalitico(){
+  document.querySelectorAll("#view th.sort").forEach(th => th.onclick = () => { const k = th.dataset.k; if (S.sortK === k) S.sortD *= -1; else { S.sortK = k; S.sortD = ["safra","NOME_CLIENTE","CD_CPF_CNPJ","TELEFONE_ATENDIMENTO","FONTE_TELEFONE","telC6","SETOR","diasJan"].includes(k) ? 1 : -1; } refresh(); });
+  const bs = $("#busca"); if (bs){ bs.oninput = e => { S.busca = e.target.value; const pos = e.target.selectionStart; refresh(); const n = $("#busca"); if (n){ n.focus(); n.setSelectionRange(pos, pos); } }; }
+  const bx = $("#btnAnXlsx"); if (bx) bx.onclick = () => {
+    const out = filtrados().map(r => ({ Safra:fSafra(r.safra), CNPJ:r.CD_CPF_CNPJ, Cliente:r.NOME_CLIENTE, "Sócio master":r.NOME_DO_MASTER, "Telefone atendimento":r.TELEFONE_ATENDIMENTO, "Fonte do telefone":fonteTxt(r.FONTE_TELEFONE), "Telefone C6":r.TELEFONE, "Telefone app":r.TELEFONE_APP, Origem:r.BASE_ORIGEM,
+      Setor:r.SETOR, CNAE:r.CNAE_FISCAL, "Descrição CNAE":r.NM_CNAE, Abertura:fD(r.DT_CONTA_CRIADA), "Primeiro acesso":r.FL_PRIMEIRO_ACESSO === 1 ? "Sim" : "Não", "Movimento (FL_ATIVA)":r.ativaC6 ? "Sim" : "Não",
+      "Cash In + PIX forte":r.g.pix ? fD(r.DT_G_PIX) : "", Boleto:r.g.bol ? fD(r.DT_G_BOLETO) : "", "Cartão":r.g.car ? fD(r.DT_G_CARTAO) : "", "TPV C6 Pay":r.g.pay ? fD(r.DT_G_C6PAY) : "",
+      "Cash in":r.VL_CASH_IN || 0, "Spending crédito M0":r.spend0, "Spending crédito M1":r.spend1, "Boleto emitido":r.VL_EMISSAO_BOLETO || 0, "TPV M0":r.tpv0, "TPV M1":r.tpv1, "Janela até":fD(r.fim) }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(out), "Analitico"); XLSX.writeFile(wb, "Ativacao_C6_CXPJ_" + S.dataBase + ".xlsx"); };
+}
+
+/* ================= ARQUIVO / SUPABASE ================= */
+async function handleFile(file, persist){
+  if (!file) return;
+  try {
+    toast("Lendo " + file.name + "…");
+    const enc = encode(await readFile(file)); if (!encLen(enc)) throw new Error("O arquivo não tem linhas.");
+    if (persist && logged && sb){
+      toast("Publicando a base…");
+      const body = JSON.stringify(enc), path = PAINEL + "/" + Date.now() + ".json";
+      const upr = await sb.storage.from(BUCKET).upload(path, new Blob([body], { type:"application/json" }), { contentType:"application/json", cacheControl:"31536000", upsert:false });
+      if (upr.error) throw upr.error;
+      const prev = S.meta && S.meta.path;
+      const mr = await sb.from("painel_base_meta").upsert({ painel:PAINEL, arquivo:file.name, linhas:encLen(enc), storage_path:path, tamanho_bytes:body.length, atualizado_em:new Date().toISOString() }).select().single();
+      if (mr.error){ await sb.storage.from(BUCKET).remove([path]); throw mr.error; }
+      S.loadedAsset = path; load(enc, toMeta(mr.data));
+      if (prev && prev !== path) sb.storage.from(BUCKET).remove([prev]).catch(() => {});
+      toast("Base atualizada para todos: " + fInt(encLen(enc)) + " linhas.", "ok");
+    } else { S.loadedAsset = null; load(enc, null); toast("Arquivo aberto só nesta tela.", "ok"); }
+  } catch (e){ const m = (e && (e.message || e.error)) || ""; toast(/row-level security|Unauthorized|403/i.test(m) ? "Seu usuário não tem permissão para atualizar a base." : m || "Não foi possível ler o arquivo.", "err"); }
+  finally { $("#file").value = ""; }
+}
+let persistNext = false;
+$("#btnUp").onclick = () => { persistNext = true; $("#file").click(); };
+$("#btnLocal").onclick = () => { persistNext = false; $("#file").click(); };
+$("#file").onchange = e => handleFile(e.target.files[0], persistNext);
+$("#btnTheme").onclick = () => { const r = document.documentElement; const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark"; try { localStorage.setItem("c6pj-theme", r.dataset.theme); } catch(_){} refresh(); };
+try { const th = localStorage.getItem("c6pj-theme"); if (th) document.documentElement.dataset.theme = th; } catch(_){}
+function showEmpty(t, b){ $("#main").classList.add("hidden"); $("#emptyState").classList.remove("hidden"); $("#emptyTitle").textContent = t; $("#emptyBody").innerHTML = b || ""; }
+/* ---------- gestao de acessos (so administradores) ---------- */
+const gerarSenha = () => { const c = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"; let r = "";
+  const a = new Uint32Array(10); crypto.getRandomValues(a); a.forEach(x => r += c[x % c.length]); return r; };
+const fData = d => d ? new Date(d).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", year:"2-digit", hour:"2-digit", minute:"2-digit" }) : "–";
+async function chamarAcessos(body){
+  const { data, error } = await sb.functions.invoke("painel-acessos", { body });
+  if (error){
+    let msg = error.message || "Erro ao chamar a função painel-acessos.";
+    try { const j = await error.context.json(); if (j && j.erro) msg = j.erro; } catch(_){}
+    if (/not found|404|Failed to send/i.test(msg)) msg = "A função painel-acessos não foi encontrada no Supabase. Confira o passo de criação da Edge Function.";
+    throw new Error(msg);
+  }
+  if (data && data.erro) throw new Error(data.erro);
+  return data;
+}
+let ultimoCadastro = "";
+async function renderAcessos(){
+  const v = $("#view");
+  v.innerHTML = '<div class="card"><h2>Liberar acesso</h2><p class="hint">Cria o login da pessoa e libera o painel. Leitor só visualiza; administrador também atualiza a base e gerencia acessos.</p>'
+    + '<div class="acs-form">'
+    + '<label>Nome<input id="aNome" placeholder="Nome da pessoa"></label>'
+    + '<label>E-mail<input id="aEmail" type="email" placeholder="pessoa@empresa.com"></label>'
+    + '<label>Perfil<select id="aPapel"><option value="LEITOR">Leitor</option><option value="ADMIN">Administrador</option></select></label>'
+    + '<label>Senha<span class="acs-senha"><input id="aSenha" value="' + gerarSenha() + '"><button class="btn ghost" type="button" id="aGerar">Gerar</button></span></label>'
+    + '<button class="btn primary" type="button" id="aCriar">Liberar acesso</button></div>'
+    + (ultimoCadastro ? '<div class="acs-ok" id="aOk">' + ultimoCadastro + '<br><button class="btn ghost" type="button" id="aCopiar" style="margin-top:8px">Copiar dados de acesso</button></div>' : '')
+    + '</div><div class="card"><h2>Quem tem acesso</h2><div id="aLista"><p class="hint">Carregando…</p></div></div>';
+  $("#aGerar").onclick = () => { $("#aSenha").value = gerarSenha(); };
+  if ($("#aCopiar")) $("#aCopiar").onclick = () => { navigator.clipboard.writeText(ultimoCadastro.replace(/<[^>]+>/g, "")).then(() => toast("Dados copiados.", "ok")); };
+  $("#aCriar").onclick = async () => {
+    const email = $("#aEmail").value.trim(), senha = $("#aSenha").value.trim(), nome = $("#aNome").value.trim(), papel = $("#aPapel").value;
+    const b = $("#aCriar"); b.disabled = true; toast("Liberando acesso…");
+    try {
+      await chamarAcessos({ acao:"criar", email, senha, nome, papel });
+      ultimoCadastro = "Acesso liberado para <b>" + esc(nome || email) + "</b>.\nLink: " + esc(location.origin + location.pathname)
+        + "\nE-mail: " + esc(email) + "\nSenha: " + esc(senha);
+      toast("Acesso liberado.", "ok"); renderAcessos();
+    } catch(e){ toast(e.message, "err"); b.disabled = false; }
+  };
+  try {
+    const { lista, eu } = await chamarAcessos({ acao:"listar" });
+    lista.sort((a,b) => (a.papel === b.papel ? 0 : a.papel === "ADMIN" ? -1 : 1) || String(a.nome || a.email).localeCompare(String(b.nome || b.email), "pt-BR"));
+    $("#aLista").innerHTML = '<div class="tscroll"><table class="acs-tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th>Último acesso</th><th>Liberado em</th><th></th></tr></thead><tbody>'
+      + lista.map(x => '<tr><td>' + esc(x.nome || "–") + '</td><td>' + esc(x.email) + '</td>'
+        + '<td><span class="pill' + (x.papel === "ADMIN" ? " adm" : "") + '">' + (x.papel === "ADMIN" ? "Administrador" : "Leitor") + '</span></td>'
+        + '<td>' + (!x.tem_login ? '<span class="pill">Sem login criado</span>' : x.ultimo_acesso ? '<span class="pill ok">Ativo</span>' : '<span class="pill">Nunca entrou</span>') + '</td>'
+        + '<td>' + fData(x.ultimo_acesso) + '</td><td>' + fData(x.liberado_em) + '</td>'
+        + '<td><div class="acts">' + (x.tem_login ? '<button data-a="senha" data-e="' + esc(x.email) + '">Nova senha</button>' : '')
+        + (String(x.email).toLowerCase() === eu ? '' : '<button class="del" data-a="remover" data-e="' + esc(x.email) + '">Remover acesso</button>') + '</div></td></tr>').join("")
+      + '</tbody></table></div><p class="hint" style="margin-top:8px">' + lista.length + ' pessoa(s) com acesso. Remover acesso bloqueia o painel na hora; o login da pessoa no Supabase não é apagado.</p>';
+    $("#aLista").onclick = async e => {
+      const bt = e.target.closest("button[data-a]"); if (!bt) return;
+      const email = bt.dataset.e, a = bt.dataset.a;
+      if (a === "remover"){
+        if (!confirm("Remover o acesso de " + email + " ao painel?")) return;
+        try { await chamarAcessos({ acao:"remover", email }); toast("Acesso removido.", "ok"); renderAcessos(); } catch(err){ toast(err.message, "err"); }
+      } else {
+        const senha = prompt("Nova senha para " + email + " (mínimo 8 caracteres):", gerarSenha()); if (!senha) return;
+        try { await chamarAcessos({ acao:"senha", email, senha });
+          ultimoCadastro = "Senha redefinida para <b>" + esc(email) + "</b>.\nLink: " + esc(location.origin + location.pathname) + "\nE-mail: " + esc(email) + "\nSenha: " + esc(senha);
+          toast("Senha alterada.", "ok"); renderAcessos(); } catch(err){ toast(err.message, "err"); }
+      }
+    };
+  } catch(e){ $("#aLista").innerHTML = '<p class="hint" style="color:var(--red)">' + esc(e.message) + '</p>'; }
+}
+
+function paintAuth(){
+  $("#btnLogin").classList.toggle("hidden", logged); $("#btnLogout").classList.toggle("hidden", !logged);
+  $("#btnUp").classList.toggle("hidden", !(logged && isAdmin));
+  $("#tabAcessos").classList.toggle("hidden", !(logged && isAdmin));
+  if (!logged) showEmpty("Acesso restrito", '<p style="color:var(--muted)">Clique em <b>Entrar</b> e use o e-mail e a senha que você recebeu.</p>');
+}
+async function aoLogar(session){
+  logged = !!session;
+  if (!logged){ isAdmin = false; S.rows = null; S.loadedAsset = null; S.meta = null; paintAuth(); renderMeta(); return; }
+  const [ra, rv] = await Promise.all([sb.rpc("painel_sou_admin"), sb.rpc("painel_posso_ver")]);
+  isAdmin = !ra.error && ra.data === true; paintAuth();
+  if (!isAdmin && !(rv && !rv.error && rv.data === true)){ showEmpty("Usuário sem acesso a este painel", '<p style="color:var(--muted)">Seu login funcionou, mas seu e-mail ainda não foi liberado. Fale com o responsável.</p>'); return; }
+  await syncBase(false);
+}
+async function syncBase(silent){
+  const { data, error } = await sb.from("painel_base_meta").select("*").eq("painel", PAINEL).maybeSingle();
+  if (error || !data){ if (!S.rows) showEmpty(isAdmin ? "Carregue a primeira base" : "Nenhuma base publicada ainda", isAdmin ? '<p style="color:var(--muted)">Use <b>Atualizar base</b> e escolha o Excel com as saídas 1 e 2 da query <b>C6_CXPJ_ATIVACAO_PAINEL</b>.</p>' : ""); return; }
+  const m = toMeta(data); if (m.path === S.loadedAsset){ S.meta = m; renderMeta(); return; }
+  try { const dl = await sb.storage.from(BUCKET).download(m.path); if (dl.error) throw dl.error;
+    S.loadedAsset = m.path; load(JSON.parse(await dl.data.text()), m); if (silent) toast("Base atualizada.", "ok"); }
+  catch(_){ if (!S.rows) showEmpty("Não foi possível baixar a base", ""); }
+}
+$("#btnLogin").onclick = () => { $("#lErr").textContent = ""; $("#dlgLogin").showModal(); $("#lEmail").focus(); };
+$("#lCancel").onclick = () => $("#dlgLogin").close();
+$("#fLogin").onsubmit = async e => { e.preventDefault(); const b = $("#lGo"); b.disabled = true; $("#lErr").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email:$("#lEmail").value.trim(), password:$("#lPass").value });
+  b.disabled = false; if (error){ $("#lErr").textContent = "E-mail ou senha incorretos."; return; } $("#lPass").value = ""; $("#dlgLogin").close(); };
+$("#btnLogout").onclick = () => sb.auth.signOut();
+(async function init(){
+  if (!sb){ $("#btnLogin").classList.add("hidden"); $("#btnLocal").classList.remove("hidden");
+    showEmpty("Abra a base", '<p style="color:var(--muted)">Sem conexão com o Supabase: use <b>Abrir arquivo</b> para ver a base só nesta tela.</p>'); return; }
+  sb.auth.onAuthStateChange((ev, session) => { if (ev === "SIGNED_IN" || ev === "SIGNED_OUT") setTimeout(() => aoLogar(session), 0); });
+  const { data } = await sb.auth.getSession(); await aoLogar(data && data.session);
+  setInterval(() => { if (logged && document.visibilityState === "visible") syncBase(true); }, 2 * 60 * 1000);
+})();
+})();
+</script>
+</body>
+</html>
