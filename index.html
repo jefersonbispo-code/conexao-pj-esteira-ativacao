@@ -279,6 +279,112 @@ table.x th.sort:hover{color:var(--teal)}
 .leg2{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
 .leg2 i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-2px}
 .mtx td.c{text-align:center}
+
+/* sem barras de rolagem nas tabelas: a tabela ocupa a largura do card e o texto quebra linha; a pagina rola normalmente */
+.tscroll,.tscroll.tall{overflow:visible !important;max-height:none !important}
+table.x{width:100%;font-size:11.5px}
+table.x th,table.x td{padding:4px 5px;white-space:normal;word-break:normal;overflow-wrap:anywhere}
+table.x td.num,table.x th.num{white-space:nowrap}
+table.x td.name{max-width:none;width:auto;overflow:visible;text-overflow:clip}
+table.x thead th{position:static}
+
+/* ---- sem barras de rolagem: tabelas na largura da tela; so nomes e textos longos quebram linha ---- */
+@media screen{
+  .tscroll,.tscroll.tall{overflow:visible;max-height:none}
+  table.x{width:100%;font-size:11.5px}
+  table.x th,table.x td{padding:4px 4px}
+  table.x td.num{font-size:11.5px}
+  table.x thead th{font-size:10.5px}
+  @media (max-width:1400px){ .wrap{padding-left:14px;padding-right:14px} .card{padding-left:12px;padding-right:12px} table.x,table.x td.num{font-size:11px} }
+  @media (max-width:1300px){ table.x,table.x td.num{font-size:10.5px} table.x th,table.x td{padding:3px 3px} table.x thead th{font-size:10px} }
+  table.x th{white-space:normal;overflow-wrap:normal;word-break:normal}
+  table.x td{white-space:normal;overflow-wrap:normal;word-break:normal}
+  table.x td.name{max-width:none;width:auto;min-width:90px}
+  table.x thead th{position:sticky;top:0;z-index:1}
+}
+
+/* ================= TEMA C6 VIVO ================= */
+:root{
+  --c6-black:#0B0B0B; --c6-carbon:#1A1A1A; --c6-yel:#FFC400; --c6-yel-2:#FFE066; --c6-amb:#FF9F1C;
+  --bg:#F3F3EF; --panel:#FFFFFF; --panel-2:#F8F7F2; --line:#E6E4DC;
+  --amber-soft:#FFF3C4; --teal-soft:#FFF3C4; --gold:#E0AC00;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 6px 18px rgba(0,0,0,.06);
+  --shadow-up:0 2px 4px rgba(0,0,0,.06),0 14px 32px rgba(0,0,0,.12);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#080808;--panel:#141414;--panel-2:#1B1B1B;--line:#2A2A2A;--amber-soft:#3A2F08;--teal-soft:#3A2F08;--shadow:0 1px 2px rgba(0,0,0,.5);--shadow-up:0 10px 28px rgba(0,0,0,.6)}}
+:root[data-theme="dark"]{--bg:#080808;--panel:#141414;--panel-2:#1B1B1B;--line:#2A2A2A;--amber-soft:#3A2F08;--teal-soft:#3A2F08;--shadow:0 1px 2px rgba(0,0,0,.5);--shadow-up:0 10px 28px rgba(0,0,0,.6)}
+body{background:var(--bg)}
+/* topo: preto C6 com brilho amarelo */
+header.top{position:relative;overflow:hidden;background:radial-gradient(120% 140% at 100% 0%,rgba(255,196,0,.22) 0%,rgba(255,196,0,0) 45%),linear-gradient(135deg,#050505 0%,#161616 60%,#0B0B0B 100%);border-radius:20px;padding:20px 24px;box-shadow:0 18px 40px rgba(0,0,0,.25)}
+header.top::before{content:"";position:absolute;right:-60px;bottom:-80px;width:280px;height:280px;border-radius:50%;border:36px solid rgba(255,196,0,.10);pointer-events:none}
+header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--c6-yel),var(--c6-amb),var(--c6-yel));background-size:200% 100%;animation:c6flow 6s linear infinite}
+@keyframes c6flow{to{background-position:200% 0}}
+header.top .brand h1::after{background:linear-gradient(90deg,var(--c6-yel),var(--c6-amb));width:72px;height:5px}
+header.top .btn{border-radius:999px;transition:transform .15s,background .15s}
+header.top .btn:hover{transform:translateY(-1px);background:#2A2A2A}
+header.top .btn.primary{background:var(--c6-yel);border-color:var(--c6-yel);color:#0B0B0B;font-weight:600;box-shadow:0 6px 18px rgba(255,196,0,.35)}
+header.top .btn.primary:hover{background:var(--c6-yel-2)}
+/* abas em pilulas */
+.tabs{position:sticky;top:8px;z-index:30;gap:6px;border:1px solid #2E2E2E!important;background:var(--c6-black);padding:6px;border-radius:999px;margin:18px 0 18px;box-shadow:var(--shadow-up);width:max-content;max-width:100%}
+.tabs button{border:0!important;border-radius:999px;padding:9px 18px;color:#CFCFCF;font-weight:600;transition:background .2s,color .2s,transform .15s}
+.tabs button:hover{color:#fff;background:#262626}
+.tabs button.on{background:var(--c6-yel);color:#0B0B0B!important;box-shadow:0 4px 14px rgba(255,196,0,.4)}
+/* barra do consolidado */
+.kbar{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 16px;width:max-content;max-width:100%;box-shadow:var(--shadow)}
+.kbar b{font-family:var(--f-num);font-size:15px}
+.kbar .sel{border-radius:999px;border-color:var(--c6-yel);background:var(--amber-soft);font-weight:600}
+/* KPIs em cartoes */
+.kpis{background:none!important;border:0!important;overflow:visible!important;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important}
+.kpi{position:relative;background:var(--panel);border:1px solid var(--line)!important;border-radius:16px;padding:16px 16px 14px;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;right:0;height:4px;background:linear-gradient(90deg,var(--c6-yel),var(--c6-amb))}
+.kpi:nth-child(4n+2)::before{background:linear-gradient(90deg,#0B0B0B,#555)}
+.kpi:nth-child(4n+3)::before{background:linear-gradient(90deg,var(--c6-amb),var(--c6-yel))}
+.kpi:nth-child(4n+4)::before{background:linear-gradient(90deg,#555,#0B0B0B)}
+:root[data-theme="dark"] .kpi:nth-child(4n+2)::before,:root[data-theme="dark"] .kpi:nth-child(4n+4)::before{background:linear-gradient(90deg,#F2F2F2,#888)}
+.kpi:hover{transform:translateY(-3px);box-shadow:var(--shadow-up)}
+.kpi .n{text-transform:uppercase;letter-spacing:.05em;font-size:11px;font-weight:600}
+.kpi .v{font-size:clamp(24px,2.4vw,32px)}
+.kpi.proj{background:linear-gradient(160deg,var(--amber-soft),var(--panel) 70%)}
+/* cartoes e controles */
+.card,.ctrl{border-radius:18px;box-shadow:var(--shadow);border-color:var(--line)}
+.card{padding:18px 20px;animation:c6in .35s ease both}
+@keyframes c6in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card h2{font-size:20px;display:flex;align-items:center;gap:10px}
+.card h2::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--c6-yel);box-shadow:0 0 0 4px rgba(255,196,0,.22);flex:none}
+.ctrl select,select.sel{border-radius:10px;transition:border-color .15s,box-shadow .15s}
+.ctrl select:hover,.ctrl select:focus,select.sel:focus{border-color:var(--c6-yel);box-shadow:0 0 0 3px rgba(255,196,0,.25)}
+.btn{border-radius:999px;transition:transform .15s,box-shadow .15s,border-color .15s}
+.btn:hover{transform:translateY(-1px);border-color:var(--c6-yel);box-shadow:0 6px 16px rgba(255,196,0,.25)}
+.btn.ghost{background:var(--panel)}
+/* tabelas */
+.tscroll{border-radius:14px;border-color:var(--line)}
+table.x thead th,thead th{background:var(--c6-black)!important;color:#F2F2F2!important;border-bottom:0}
+table.x thead tr.grp th{background:var(--c6-carbon)!important}
+tbody tr{transition:background .12s}
+tbody tr:hover td{background:rgba(255,196,0,.10)!important}
+table.funil tr.destaque td{background:linear-gradient(90deg,rgba(255,196,0,.28),rgba(255,196,0,.10))!important}
+table.funil tr.destaque td.name{box-shadow:inset 4px 0 0 var(--c6-yel)}
+table.funil td.tot,table.funil th.tot{background:rgba(255,196,0,.08)}
+table.funil tr.aux td{color:var(--muted);font-style:italic}
+td.c6bar{background-image:linear-gradient(90deg,rgba(255,196,0,.55),rgba(255,159,28,.45));background-repeat:no-repeat;background-size:var(--w,0%) 62%;background-position:left center;transition:background-size .6s ease}
+.legend2{margin-top:10px}
+/* login e vazio */
+dialog{border-radius:18px;box-shadow:var(--shadow-up)}
+dialog h2::after{content:"";display:block;width:48px;height:4px;border-radius:2px;background:var(--c6-yel);margin-top:8px}
+.empty{border-radius:20px;border-color:var(--c6-yel)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:700px){.tabs{width:auto;border-radius:16px;position:static}.kbar{width:auto;border-radius:14px}}
+/* identidade C6 no topo (texto claro) */
+header.top{color:#F2F2F2;align-items:center}
+header.top .brand p,header.top .meta{color:#BDBDBD}
+header.top .meta b{color:#F2F2F2}
+header.top .brand h1{color:#FFFFFF}
+header.top .brand h1::after{content:"";display:block;margin-top:8px;border-radius:2px}
+header.top .btn{background:#1E1E1E;border-color:#3A3A3A;color:#F2F2F2}
+header.top .toast{color:#BDBDBD}
+thead th.sorted,th.sorted,thead th:hover{color:var(--c6-yel)!important}
+thead th .arr{color:inherit}
+.filters{border-radius:16px;box-shadow:var(--shadow)}
 </style>
 </head>
 <body>
@@ -308,6 +414,9 @@ table.x th.sort:hover{color:var(--teal)}
       <label>Safra (mês de abertura)<select id="selSafra"></select></label>
       <label>Setor (CNAE agrupado)<select id="selSetor"></select></label>
       <label>Janela<select id="selJan"><option value="">Todas as contas</option><option value="aberta">Só janela aberta</option></select></label>
+      <label id="lblLib">Produto liberado<select id="selLib">
+        <option value="">Todos</option><option value="car">Cartão de crédito</option><option value="bol">Boleto</option><option value="pay">C6 Pay</option><option value="lim">Limite da conta</option>
+        <option value="pix">PIX (chave forte pendente)</option><option value="nenhum">Nenhum produto liberado</option></select></label>
     </div>
     <section class="kpis" id="kpis"></section>
     <nav class="tabs" id="tabs" role="tablist">
@@ -356,7 +465,7 @@ const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n)
 function toast(msg, kind){ const t = $("#toast"); t.textContent = msg || ""; t.className = "toast" + (kind ? " " + kind : ""); }
 
 const toMeta = r => r ? { fileName:r.arquivo, rows:r.linhas, updatedAt:r.atualizado_em, path:r.storage_path } : null;
-const fR = v => isFinite(v) ? "R$ " + nf.format(Math.round(v)) : "–";
+const fR = v => isFinite(v) ? "R$\u00a0" + nf.format(Math.round(v)) : "–";
 const fD = iso => iso ? iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4) : "–";
 const fDM = iso => iso ? iso.slice(8, 10) + "/" + iso.slice(5, 7) : "–";
 const fSafra = m => fMes(String(m).replace("-", ""));
@@ -372,13 +481,16 @@ const GAT = [
   { k:"pay", nome:"TPV C6 Pay", col:"DT_G_C6PAY" }
 ];
 const FAIXAS = [0.20, 0.25, 0.35];
+const PROD = [{ k:"car", nome:"Cartão de crédito" }, { k:"bol", nome:"Boleto" }, { k:"pay", nome:"C6 Pay" }, { k:"lim", nome:"Limite da conta" }];
+const libOk = r => !S.prodLib ? true : S.prodLib === "pix" ? r.pixPend : S.prodLib === "nenhum" ? r.lib && r.nProd === 0 : r.prod[S.prodLib];
 const COLS_TXT = ["DATA_BASE","CD_CPF_CNPJ","NOME_CLIENTE","NOME_DO_MASTER","TELEFONE","TELEFONE_APP","BASE_ORIGEM","STATUS_ABERTURA_CC","STATUS_CONTA","STATUS_LEAD",
   "DT_CONTA_CRIADA","DT_PRIMEIRO_ACESSO_CONTA","DT_CADASTRO_CHAVEPIX","TIPO_CHAVEPIX","SAFRA","JANELA_FIM","DT_G_PIX","DT_G_BOLETO","DT_G_CARTAO","DT_G_C6PAY","DT_ATIVA_C6","SETOR","CNAE_FISCAL","NM_CNAE","TELEFONE_ATENDIMENTO","FONTE_TELEFONE"];
 const COLS_NUM = ["FL_PRIMEIRO_ACESSO","FL_ATIVA","CADASTRO_CHAVEPIXFORTE","FL_CASH_IN_MAIOR_0","FL_CASH_IN_MAIOR_1000","VL_CASH_IN","FL_EMISSAO_BOLETO_MAIOR_0","FL_EMISSAO_BOLETO_MAIOR_1000",
-  "VL_EMISSAO_BOLETO","FL_SOLICITACAO_C6PAY","FL_ENTREGA_C6PAY","TPV_C6PAY_M0","TPV_C6PAY_M1","CARTAO_ATIVO","FL_CARTAO_MAIOR_1000","SPENDING_CREDITO_M0","SPENDING_CREDITO_M1"];
+  "VL_EMISSAO_BOLETO","FL_SOLICITACAO_C6PAY","FL_ENTREGA_C6PAY","TPV_C6PAY_M0","TPV_C6PAY_M1","CARTAO_ATIVO","FL_CARTAO_MAIOR_1000","SPENDING_CREDITO_M0","SPENDING_CREDITO_M1",
+  "FL_ELEGIBILIDADE_BOLETO","ELEGIBILIDADE_C6PAY","LIMITE_CARTAO","LIMITE_CONTA"];
 const DATE_COLS = new Set(["DATA_BASE","DT_CONTA_CRIADA","DT_PRIMEIRO_ACESSO_CONTA","DT_CADASTRO_CHAVEPIX","JANELA_FIM","DT_G_PIX","DT_G_BOLETO","DT_G_CARTAO","DT_G_C6PAY","DT_ATIVA_C6"]);
 const EVO_COLS = ["DATA_BASE","SAFRA","CONTAS","ATIVAS_C6","ATIVAS_GATILHO","G_PIX","G_BOLETO","G_CARTAO","G_C6PAY"];
-const S = { rows:null, evo:[], meta:null, loadedAsset:null, safras:[], safra:"", setor:"", janela:"", tab:"geral", oport:"ativ", setorSel:"", busca:"", sortK:"DT_CONTA_CRIADA", sortD:-1, dataBase:"" };
+const S = { prodLib:"", rows:null, evo:[], meta:null, loadedAsset:null, safras:[], safra:"", setor:"", janela:"", tab:"geral", oport:"ativ", setorSel:"", busca:"", sortK:"DT_CONTA_CRIADA", sortD:-1, dataBase:"" };
 
 /* ================= LEITURA ================= */
 const normKey = k => String(k).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u00a0/g, " ").trim().toUpperCase().replace(/\s+/g, "_");
@@ -444,6 +556,13 @@ function prep(r){
   r.SETOR = r.SETOR || "SEM ENRIQUECIMENTO";
   r.lib = String(r.STATUS_CONTA).toUpperCase() === "LIBERADA";
   r.telC6 = r.TELEFONE_APP || r.TELEFONE || "";
+  /* produtos liberados (levantamento do agente, 12/11): so com a conta LIBERADA; as flags nao desligam quando a conta cai
+     cartao de credito = LIMITE_CARTAO > 0 · boleto = FL_ELEGIBILIDADE_BOLETO = 1 · C6 Pay = ELEGIBILIDADE_C6PAY = 1 · limite da conta = LIMITE_CONTA > 0
+     PIX nao tem coluna de liberacao: aparece como oportunidade quando a chave forte ainda nao foi cadastrada */
+  r.prod = { car:r.lib && (r.LIMITE_CARTAO || 0) > 0, bol:r.lib && r.FL_ELEGIBILIDADE_BOLETO === 1, pay:r.lib && r.ELEGIBILIDADE_C6PAY === 1, lim:r.lib && (r.LIMITE_CONTA || 0) > 0 };
+  r.pixPend = r.lib && r.CADASTRO_CHAVEPIXFORTE !== 1;
+  r.nProd = PROD.filter(p => r.prod[p.k]).length;
+  r.prodTxt = !r.lib ? "Nenhum (conta não liberada)" : (PROD.filter(p => r.prod[p.k]).map(p => p.nome).join(", ") || "Nenhum");
   r.ativaC6 = r.FL_ATIVA === 1;
   r.g = {}; GAT.forEach(x => { const d = r[x.col]; r.g[x.k] = !!d && (!r.fim || d <= r.fim); });
   r.ativaG = GAT.some(x => r.g[x.k]);
@@ -475,15 +594,16 @@ function opts(list, sel, all, fmt){ return (all ? '<option value="">' + all + '<
 function buildControls(){
   $("#selSafra").innerHTML = opts(S.safras, S.safra, "Todas as safras", fSafra);
   $("#selSetor").innerHTML = opts(S.setores, S.setor, "Todos");
-  $("#selJan").value = S.janela;
+  $("#selJan").value = S.janela; $("#selLib").value = S.prodLib;
 }
 $("#selSafra").onchange = e => { S.safra = e.target.value; refresh(); };
 $("#selSetor").onchange = e => { S.setor = e.target.value; refresh(); };
 $("#selJan").onchange = e => { S.janela = e.target.value; refresh(); };
+$("#selLib").onchange = e => { S.prodLib = e.target.value; refresh(); };
 $("#tabs").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.tab = b.dataset.t; document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("on", x === b)); refresh(); };
 
 /* ================= CALCULO ================= */
-function filtrados(){ return S.rows.filter(r => r.lib && (!S.safra || r.safra === S.safra) && (!S.setor || r.SETOR === S.setor) && (S.janela !== "aberta" || r.janAberta)); }
+function filtrados(incluiNaoLib){ return S.rows.filter(r => (incluiNaoLib || r.lib) && (!S.safra || r.safra === S.safra) && (!S.setor || r.SETOR === S.setor) && (S.janela !== "aberta" || r.janAberta) && libOk(r)); }
 function resumo(l){
   const n = l.length, o = { n, c6:0, g:0, acesso:0, q:{} };
   GAT.forEach(x => o.q[x.k] = 0);
@@ -501,8 +621,7 @@ function refresh(){
   if (S.tab === "acessos"){ if (logged && isAdmin) renderAcessos(); return; }
   if (!S.rows) return;
   const l = filtrados(), R = resumo(l), op = l.filter(r => r.janAberta && !r.ativaG).length;
-  const fora = S.rows.filter(r => !r.lib && (!S.safra || r.safra === S.safra)).length;
-  $("#kpis").innerHTML = k("Contas liberadas", fInt(R.n), fInt(fora) + " abertas fora (bloqueada ou desativada)")
+  $("#kpis").innerHTML = k("Contas liberadas", fInt(R.n), "STATUS_CONTA liberada")
     + k("% ativação (FL_ATIVA)", fPct(R.pC6), fInt(R.c6) + " contas com movimento · define a faixa")
     + k("% com gatilho de R$ 1 mil", fPct(R.pG), fInt(R.g) + " contas bateram pelo menos 1 gatilho")
     + k("Cash In + PIX · Boleto", fInt(R.q.pix) + " · " + fInt(R.q.bol), fPct(div(R.q.pix, R.n)) + " · " + fPct(div(R.q.bol, R.n)) + " das contas")
@@ -514,7 +633,7 @@ function refresh(){
   else if (S.tab === "gatilhos") v.innerHTML = viewGatilhos(l);
   else if (S.tab === "setores"){ v.innerHTML = viewSetores(l); bindSetores(); }
   else if (S.tab === "oport"){ v.innerHTML = viewOport(l); bindOport(); }
-  else { v.innerHTML = viewAnalitico(l); bindAnalitico(); }
+  else { v.innerHTML = viewAnalitico(filtrados()); bindAnalitico(); }
 }
 /* ---------- visao geral: uma linha por safra ---------- */
 function viewGeral(l){
@@ -637,8 +756,8 @@ function bindOport(){
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(out), "Oportunidade"); XLSX.writeFile(wb, "Ativacao_" + sel.o.k + "_" + S.dataBase + ".xlsx"); };
 }
 /* ---------- analitico ---------- */
-const ACOLS = [["safra","Safra"],["NOME_CLIENTE","Cliente"],["CD_CPF_CNPJ","CNPJ"],["TELEFONE_ATENDIMENTO","Telefone atendimento"],["FONTE_TELEFONE","Fonte do telefone"],["telC6","Telefone C6"],["SETOR","Setor"],["DT_CONTA_CRIADA","Abertura"],["FL_PRIMEIRO_ACESSO","1º acesso"],["ativaC6","Movimento"],
-  ["pix","PIX"],["bol","Boleto"],["car","Cartão"],["pay","C6 Pay"],["VL_CASH_IN","Cash in"],["spendJan","Spending"],["VL_EMISSAO_BOLETO","Boleto emitido"],["tpvJan","TPV"],["diasJan","Dias de janela"]];
+const ACOLS = [["safra","Safra"],["NOME_CLIENTE","Cliente"],["CD_CPF_CNPJ","CNPJ"],["TELEFONE_ATENDIMENTO","Telefone atendimento"],["FONTE_TELEFONE","Fonte do telefone"],["telC6","Telefone C6"],["prodTxt","Produtos liberados"],["SETOR","Setor"],["DT_CONTA_CRIADA","Abertura"],["FL_PRIMEIRO_ACESSO","1º acesso"],["ativaC6","Movimento"],
+  ["pix","Gatilho PIX"],["bol","Gatilho boleto"],["car","Gatilho cartão"],["pay","Gatilho C6 Pay"],["VL_CASH_IN","Cash in"],["spendJan","Spending"],["VL_EMISSAO_BOLETO","Boleto emitido"],["tpvJan","TPV"],["diasJan","Dias de janela"]];
 const VAL_R = new Set(["VL_CASH_IN","spendJan","VL_EMISSAO_BOLETO","tpvJan"]);
 function viewAnalitico(l){
   const b = S.busca.toLowerCase();
@@ -648,16 +767,18 @@ function viewAnalitico(l){
   const ck = v => v ? '<span style="color:#2E7D32;font-weight:700">✓</span>' : '<span style="color:var(--muted)">·</span>';
   const cell = (r, k) => GAT.some(g => g.k === k) ? ck(r.g[k]) : k === "safra" ? esc(fSafra(r.safra)) : k === "ativaC6" ? ck(r.ativaC6) : k === "FL_PRIMEIRO_ACESSO" ? ck(r.FL_PRIMEIRO_ACESSO === 1)
     : k === "FONTE_TELEFONE" ? esc(fonteTxt(r.FONTE_TELEFONE)) : k === "DT_CONTA_CRIADA" ? fD(r.DT_CONTA_CRIADA) : VAL_R.has(k) ? fCel(r[k], "R") : k === "diasJan" ? (r.janAberta ? fInt(r.diasJan) : '<span style="color:var(--muted)">fechada</span>') : esc(r[k]);
-  return '<div class="card"><div class="bar-head"><div><h2 style="margin:0">Analítico por conta · ' + fInt(l.length) + ' contas</h2><p class="hint" style="margin:0">Clique no título da coluna para ordenar. Spending e TPV = mês da foto + mês anterior, quando dentro da janela.</p></div><div style="display:flex;gap:8px"><input type="search" id="busca" class="sel" placeholder="Buscar cliente, CNPJ ou sócio" value="' + esc(S.busca) + '"><button class="btn ghost" id="btnAnXlsx">Baixar Excel</button></div></div>'
+  return '<div class="card"><div class="bar-head"><div><h2 style="margin:0">Analítico por conta · ' + fInt(l.length) + ' contas</h2><p class="hint" style="margin:0">Clique no título da coluna para ordenar. Spending e TPV = mês da foto + mês anterior, quando dentro da janela. Produtos liberados: só com a conta liberada (cartão de crédito = limite do cartão; boleto e C6 Pay = elegibilidade do C6; limite da conta = limite > 0). Contas desativadas e bloqueadas não entram no painel.</p></div><div style="display:flex;gap:8px"><input type="search" id="busca" class="sel" placeholder="Buscar cliente, CNPJ ou sócio" value="' + esc(S.busca) + '"><button class="btn ghost" id="btnAnXlsx">Baixar Excel</button></div></div>'
     + '<div class="tscroll tall"><table class="x"><thead><tr>' + ACOLS.map(([k, h]) => '<th class="sort' + (VAL_R.has(k) || k === "diasJan" ? ' num' : '') + '" data-k="' + k + '" style="cursor:pointer">' + h + (S.sortK === k ? (S.sortD > 0 ? " ▲" : " ▼") : "") + '</th>').join("") + '</tr></thead><tbody>'
-    + l.slice(0, 3000).map(r => '<tr>' + ACOLS.map(([k]) => '<td class="' + (k === "NOME_CLIENTE" || k === "SETOR" ? "name" : VAL_R.has(k) || k === "diasJan" ? "num" : "") + '">' + cell(r, k) + '</td>').join("") + '</tr>').join("") + '</tbody></table></div>'
+    + l.slice(0, 3000).map(r => '<tr>' + ACOLS.map(([k]) => '<td class="' + (k === "NOME_CLIENTE" || k === "SETOR" || k === "prodTxt" || k === "FONTE_TELEFONE" ? "name" : VAL_R.has(k) || k === "diasJan" ? "num" : "") + '">' + cell(r, k) + '</td>').join("") + '</tr>').join("") + '</tbody></table></div>'
     + (l.length > 3000 ? '<p class="hint">Mostrando 3.000 de ' + fInt(l.length) + ' contas; o Excel traz todas.</p>' : '') + '</div>';
 }
 function bindAnalitico(){
-  document.querySelectorAll("#view th.sort").forEach(th => th.onclick = () => { const k = th.dataset.k; if (S.sortK === k) S.sortD *= -1; else { S.sortK = k; S.sortD = ["safra","NOME_CLIENTE","CD_CPF_CNPJ","TELEFONE_ATENDIMENTO","FONTE_TELEFONE","telC6","SETOR","diasJan"].includes(k) ? 1 : -1; } refresh(); });
+  document.querySelectorAll("#view th.sort").forEach(th => th.onclick = () => { const k = th.dataset.k; if (S.sortK === k) S.sortD *= -1; else { S.sortK = k; S.sortD = ["safra","NOME_CLIENTE","CD_CPF_CNPJ","TELEFONE_ATENDIMENTO","FONTE_TELEFONE","telC6","STATUS_CONTA","prodTxt","SETOR","diasJan"].includes(k) ? 1 : -1; } refresh(); });
   const bs = $("#busca"); if (bs){ bs.oninput = e => { S.busca = e.target.value; const pos = e.target.selectionStart; refresh(); const n = $("#busca"); if (n){ n.focus(); n.setSelectionRange(pos, pos); } }; }
   const bx = $("#btnAnXlsx"); if (bx) bx.onclick = () => {
-    const out = filtrados().map(r => ({ Safra:fSafra(r.safra), CNPJ:r.CD_CPF_CNPJ, Cliente:r.NOME_CLIENTE, "Sócio master":r.NOME_DO_MASTER, "Telefone atendimento":r.TELEFONE_ATENDIMENTO, "Fonte do telefone":fonteTxt(r.FONTE_TELEFONE), "Telefone C6":r.TELEFONE, "Telefone app":r.TELEFONE_APP, Origem:r.BASE_ORIGEM,
+    const out = filtrados().map(r => ({ Safra:fSafra(r.safra), CNPJ:r.CD_CPF_CNPJ, Cliente:r.NOME_CLIENTE, "Sócio master":r.NOME_DO_MASTER, "Telefone atendimento":r.TELEFONE_ATENDIMENTO, "Fonte do telefone":fonteTxt(r.FONTE_TELEFONE), "Telefone C6":r.TELEFONE, "Telefone app":r.TELEFONE_APP, Origem:r.BASE_ORIGEM, "Status da conta":r.STATUS_CONTA, "Produtos liberados":r.prodTxt,
+      "Cartão de crédito liberado":r.prod.car ? "Sim" : "Não", "Boleto liberado":r.prod.bol ? "Sim" : "Não", "C6 Pay liberada":r.prod.pay ? "Sim" : "Não", "Limite da conta liberado":r.prod.lim ? "Sim" : "Não",
+      "PIX (chave forte pendente)":r.pixPend ? "Sim" : "Não", "Limite do cartão":r.LIMITE_CARTAO || 0, "Limite da conta":r.LIMITE_CONTA || 0,
       Setor:r.SETOR, CNAE:r.CNAE_FISCAL, "Descrição CNAE":r.NM_CNAE, Abertura:fD(r.DT_CONTA_CRIADA), "Primeiro acesso":r.FL_PRIMEIRO_ACESSO === 1 ? "Sim" : "Não", "Movimento (FL_ATIVA)":r.ativaC6 ? "Sim" : "Não",
       "Cash In + PIX forte":r.g.pix ? fD(r.DT_G_PIX) : "", Boleto:r.g.bol ? fD(r.DT_G_BOLETO) : "", "Cartão":r.g.car ? fD(r.DT_G_CARTAO) : "", "TPV C6 Pay":r.g.pay ? fD(r.DT_G_C6PAY) : "",
       "Cash in":r.VL_CASH_IN || 0, "Spending crédito M0":r.spend0, "Spending crédito M1":r.spend1, "Boleto emitido":r.VL_EMISSAO_BOLETO || 0, "TPV M0":r.tpv0, "TPV M1":r.tpv1, "Janela até":fD(r.fim) }));
@@ -794,6 +915,37 @@ $("#btnLogout").onclick = () => sb.auth.signOut();
   const { data } = await sb.auth.getSession(); await aoLogar(data && data.session);
   setInterval(() => { if (logged && document.visibilityState === "visible") syncBase(true); }, 2 * 60 * 1000);
 })();
+})();
+</script>
+<script>
+/* tema C6: numeros que sobem e barras no % das tabelas do funil */
+(() => {
+  const red = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const parse = t => { const m = t.match(/^([^\d-]*)(-?[\d.]+(?:,\d+)?)(.*)$/); if (!m) return null;
+    const dec = (m[2].split(",")[1] || "").length; return { pre:m[1], v:parseFloat(m[2].replace(/\./g, "").replace(",", ".")), dec, suf:m[3] }; };
+  const fmt = (v, dec) => v.toLocaleString("pt-BR", { minimumFractionDigits:dec, maximumFractionDigits:dec });
+  function countUp(el){
+    if (el.dataset.anim) return; const t = el.textContent.trim(); if (el.dataset.c6 === t) return; el.dataset.c6 = t;
+    const p = parse(t); if (!p || red || !isFinite(p.v)) return;
+    el.dataset.anim = "1";
+    const t0 = performance.now(), dur = 700;
+    const step = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = p.pre + fmt(p.v * e, p.dec) + p.suf; if (k < 1) requestAnimationFrame(step); else { el.textContent = t; delete el.dataset.anim; } };
+    requestAnimationFrame(step);
+  }
+  function bars(root){
+    root.querySelectorAll("table.funil").forEach(tb => {
+      const ths = Array.from(tb.querySelectorAll("thead tr:last-child th")); const i = ths.findIndex(th => /^%/.test(th.textContent.trim()));
+      if (i < 0) return;
+      tb.querySelectorAll("tbody tr").forEach(tr => { const td = tr.children[i]; if (!td || td.classList.contains("c6bar")) return;
+        const p = parse(td.textContent.trim()); if (!p || !/%/.test(p.suf)) return;
+        td.classList.add("c6bar"); td.style.setProperty("--w", "0%");
+        requestAnimationFrame(() => requestAnimationFrame(() => td.style.setProperty("--w", Math.max(0, Math.min(100, p.v)) + "%"))); });
+    });
+  }
+  let pend = false;
+  const run = () => { pend = false; document.querySelectorAll(".kpi .v, .stage .val, .spcard .v").forEach(countUp); bars(document); };
+  new MutationObserver(() => { if (!pend){ pend = true; requestAnimationFrame(run); } }).observe(document.getElementById("app"), { childList:true, subtree:true });
 })();
 </script>
 </body>
